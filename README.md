@@ -1,14 +1,22 @@
-# 📊 zquota
+<p align="center">
+  <img src=".github/assets/website/favicon.svg" width="96" height="96" alt="zquota">
+</p>
 
-> A fast, zero-dependency terminal CLI for Z.ai quota usage, remaining capacity, and exact reset times.
+<h1 align="center">zquota</h1>
 
-[![Validate](https://img.shields.io/github/actions/workflow/status/netspeedy/zquota/build-and-validate.yml?branch=main&style=flat-square&label=validate)](https://github.com/netspeedy/zquota/actions/workflows/build-and-validate.yml)
-[![Release](https://img.shields.io/github/v/release/netspeedy/zquota?sort=semver&style=flat-square)](https://github.com/netspeedy/zquota/releases)
-[![APT Repository](https://img.shields.io/badge/APT-signed%20repository-00897B?style=flat-square)](https://netspeedy.github.io/zquota/)
-[![Python](https://img.shields.io/badge/Python-3.12%2B-3776AB.svg?style=flat-square&logo=python&logoColor=white)](https://www.python.org/)
-[![License](https://img.shields.io/badge/License-MIT-2EA043.svg?style=flat-square)](LICENSE)
-[![Stdlib Only](https://img.shields.io/badge/runtime%20deps-zero-10B981.svg?style=flat-square)](zquota.py)
-[![Buy Me a Coffee](https://img.shields.io/badge/Buy%20Me%20a%20Coffee-support-FFDD00.svg?style=flat-square&logo=buymeacoffee&logoColor=000000)](https://buymeacoffee.com/soakes)
+<p align="center">
+  A fast, zero-dependency terminal CLI for Z.ai quota usage, remaining capacity, and exact reset times.
+</p>
+
+<p align="center">
+  <a href="https://github.com/netspeedy/zquota/actions/workflows/build-and-validate.yml"><img src="https://img.shields.io/github/actions/workflow/status/netspeedy/zquota/build-and-validate.yml?branch=main&style=flat-square&label=validate" alt="Validate"></a>
+  <a href="https://github.com/netspeedy/zquota/releases"><img src="https://img.shields.io/github/v/release/netspeedy/zquota?sort=semver&style=flat-square" alt="Release"></a>
+  <a href="https://netspeedy.github.io/zquota/"><img src="https://img.shields.io/badge/APT-signed%20repository-00897B?style=flat-square" alt="APT Repository"></a>
+  <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.12%2B-3776AB.svg?style=flat-square&logo=python&logoColor=white" alt="Python"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-2EA043.svg?style=flat-square" alt="License"></a>
+  <a href="zquota.py"><img src="https://img.shields.io/badge/runtime%20deps-zero-10B981.svg?style=flat-square" alt="Stdlib Only"></a>
+  <a href="https://buymeacoffee.com/soakes"><img src="https://img.shields.io/badge/Buy%20Me%20a%20Coffee-support-FFDD00.svg?style=flat-square&logo=buymeacoffee&logoColor=000000" alt="Buy Me a Coffee"></a>
+</p>
 
 **zquota** turns the Z.ai quota API into a clear terminal view — your current plan, colour-coded usage bars, and the exact reset time for every rolling window. It exists because the Z.ai usage charts don't make the five-hour rolling reset obvious enough when you're planning work.
 
