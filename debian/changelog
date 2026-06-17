@@ -1,3 +1,14 @@
+zquota (0.1.1-1) stable; urgency=medium
+
+  * Drop old quota-eye branding from README intro.
+  * Modernise README for a professional public landing.
+  * Drop redundant manual TOC (GitHub auto-generates one).
+  * Professionalise the license footer.
+  * Give README a centered branded hero matching the tap.
+  * Use Z.ai's official ZAI_* env vars and drop the deprecation fallback.
+
+ -- Simon Oakes <813389+soakes@users.noreply.github.com>  Wed, 17 Jun 2026 23:13:35 +0000
+
 zquota (0.1.0-1) stable; urgency=medium
 
   * Initial release of zquota, a Z.ai quota monitor.
