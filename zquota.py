@@ -440,7 +440,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--api-url",
         default=None,
-        help=f"API endpoint (default: {API_URL})",
+        help=f"API endpoint (default: {API_URL} or ZAI_API_URL env)",
     )
     parser.add_argument(
         "--watch",
