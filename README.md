@@ -34,19 +34,6 @@ Prefer `pip`? `python3 -m pip install git+https://github.com/netspeedy/zquota.gi
 
 ---
 
-## Contents
-
-- [Overview](#overview)
-- [Installation](#installation)
-- [Configuration](#configuration)
-- [Usage](#usage)
-- [Output formats](#output-formats)
-- [Exit codes](#exit-codes)
-- [Development](#development)
-- [Project structure](#project-structure)
-- [Contributing](#contributing)
-- [License](#license)
-
 ## Overview
 
 Z.ai exposes quota information through an authenticated API endpoint. `zquota` turns that response into:
