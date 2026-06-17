@@ -106,37 +106,6 @@ def get_timezone(timezone_name: str) -> ZoneInfo:
         return ZoneInfo(DEFAULT_TIMEZONE)
 
 
-LEGACY_ENV_FALLBACKS = {
-    "ZQUOTA_API_KEY": "ZAI_API_KEY",
-    "ZQUOTA_API_URL": "ZAI_API_URL",
-    "ZQUOTA_TIMEZONE": "ZAI_TIMEZONE",
-}
-
-
-def getenv_quota(name: str, default: str | None = None) -> str | None:
-    """Read a ZQUOTA_* env var, falling back to the legacy ZAI_* name.
-
-    The ZAI_* fallback is retained for one release to ease migration from
-    the previous tool name. A deprecation warning is printed to stderr when
-    the fallback value is used.
-    """
-    value = os.getenv(name)
-    if value is not None:
-        return value
-
-    legacy = LEGACY_ENV_FALLBACKS.get(name)
-    if legacy:
-        legacy_value = os.getenv(legacy)
-        if legacy_value is not None:
-            print(
-                f"warning: {legacy} is deprecated; set {name} instead.",
-                file=sys.stderr,
-            )
-            return legacy_value
-
-    return default
-
-
 def describe_window(item: JsonDict) -> str:
     """Return a human-readable name for a quota bucket."""
     limit_kind = item.get("type")
@@ -361,7 +330,7 @@ def print_compact(level: str, items: list[dict[str, Any]], use_color: bool) -> N
             progress_bar(pct or 0, width=10, use_color=use_color) if pct is not None else "-" * 10
         )
         name = item["name_compact"]
-        line = f"  {name:<14} [{pbar}] {pct_str:>6}" f"  left: {rem_str:>7}  reset: {reset}"
+        line = f"  {name:<14} [{pbar}] {pct_str:>6}  left: {rem_str:>7}  reset: {reset}"
         print(line)
 
 
@@ -461,12 +430,12 @@ def build_parser() -> argparse.ArgumentParser:
         "--timezone",
         "-z",
         default=None,
-        help=f"display timezone (default: {DEFAULT_TIMEZONE} or ZQUOTA_TIMEZONE env)",
+        help=f"display timezone (default: {DEFAULT_TIMEZONE} or ZAI_TIMEZONE env)",
     )
     parser.add_argument(
         "--api-key",
         default=None,
-        help="Z.ai API key (default: ZQUOTA_API_KEY env var)",
+        help="Z.ai API key (default: ZAI_API_KEY env var)",
     )
     parser.add_argument(
         "--api-url",
@@ -512,14 +481,14 @@ def run_once(
     args: argparse.Namespace,
 ) -> tuple[int, str | None, list[dict[str, Any]] | None, JsonDict | None]:
     """Fetch and parse quota data once; return (code, level, items, raw)."""
-    api_key = args.api_key or getenv_quota("ZQUOTA_API_KEY")
+    api_key = args.api_key or os.getenv("ZAI_API_KEY")
     if not api_key:
-        print_error("ZQUOTA_API_KEY is not set")
-        print("Set it with: export ZQUOTA_API_KEY='your-api-key'", file=sys.stderr)
+        print_error("ZAI_API_KEY is not set")
+        print("Set it with: export ZAI_API_KEY='your-api-key'", file=sys.stderr)
         return 1, None, None, None
 
-    api_url = args.api_url or getenv_quota("ZQUOTA_API_URL", API_URL)
-    tz_name = args.timezone or getenv_quota("ZQUOTA_TIMEZONE", DEFAULT_TIMEZONE)
+    api_url = args.api_url or os.getenv("ZAI_API_URL", API_URL)
+    tz_name = args.timezone or os.getenv("ZAI_TIMEZONE", DEFAULT_TIMEZONE)
     local_tz = get_timezone(tz_name)
 
     try:

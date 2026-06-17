@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import json
-import os
 import unittest
 from datetime import datetime, timezone
 from io import StringIO
@@ -108,31 +107,6 @@ class MainTests(unittest.TestCase):
 
         self.assertEqual(code, 1)
         self.assertIn("--threshold must be between 0 and 100", stderr.getvalue())
-
-
-class EnvFallbackTests(unittest.TestCase):
-    def test_zquota_env_is_preferred(self) -> None:
-        with patch.dict("os.environ", {"ZQUOTA_API_KEY": "new", "ZAI_API_KEY": "old"}, clear=False):
-            stderr = StringIO()
-            with patch("sys.stderr", new=stderr):
-                value = zquota.getenv_quota("ZQUOTA_API_KEY")
-            self.assertEqual(value, "new")
-            self.assertNotIn("deprecated", stderr.getvalue())
-
-    def test_legacy_zai_env_is_used_with_warning(self) -> None:
-        env = {k: v for k, v in os.environ.items() if k not in ("ZQUOTA_API_KEY", "ZAI_API_KEY")}
-        env["ZAI_API_KEY"] = "legacy"
-        with patch.dict("os.environ", env, clear=True):
-            stderr = StringIO()
-            with patch("sys.stderr", new=stderr):
-                value = zquota.getenv_quota("ZQUOTA_API_KEY")
-            self.assertEqual(value, "legacy")
-            self.assertIn("deprecated", stderr.getvalue())
-
-    def test_default_returned_when_neither_set(self) -> None:
-        env = {k: v for k, v in os.environ.items() if k != "ZQUOTA_API_URL"}
-        with patch.dict("os.environ", env, clear=True):
-            self.assertEqual(zquota.getenv_quota("ZQUOTA_API_URL", "fallback"), "fallback")
 
 
 if __name__ == "__main__":

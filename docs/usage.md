@@ -30,7 +30,7 @@ The release archive and standalone script are also published from the GitHub rel
 `zquota` expects a Z.ai API key. The safest normal setup is to keep it in your shell environment:
 
 ```bash
-export ZQUOTA_API_KEY='your-api-key'
+export ZAI_API_KEY='your-api-key'
 ```
 
 You can also pass it directly:
@@ -52,7 +52,7 @@ zquota --timezone America/New_York
 or:
 
 ```bash
-export ZQUOTA_TIMEZONE=America/New_York
+export ZAI_TIMEZONE=America/New_York
 zquota
 ```
 
@@ -125,7 +125,7 @@ zquota --json | jq '.quotas[] | select(.name_compact == "5h-rolling")'
 This exits with code `2` when any quota reaches 80 percent. A runtime error still exits with code `1`.
 
 ```cron
-*/10 * * * * ZQUOTA_API_KEY=your-api-key /usr/local/bin/zquota --threshold 80 >/tmp/zquota.log 2>&1
+*/10 * * * * ZAI_API_KEY=your-api-key /usr/local/bin/zquota --threshold 80 >/tmp/zquota.log 2>&1
 ```
 
 ## Troubleshooting
@@ -133,10 +133,10 @@ This exits with code `2` when any quota reaches 80 percent. A runtime error stil
 ### Missing API key
 
 ```text
-ERROR: ZQUOTA_API_KEY is not set
+ERROR: ZAI_API_KEY is not set
 ```
 
-Set `ZQUOTA_API_KEY` or pass `--api-key`.
+Set `ZAI_API_KEY` or pass `--api-key`.
 
 ### Unknown timezone
 

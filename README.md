@@ -32,7 +32,7 @@
 ```bash
 brew tap netspeedy/zquota
 brew install zquota
-export ZQUOTA_API_KEY='your-api-key'
+export ZAI_API_KEY='your-api-key'
 zquota
 ```
 
@@ -116,16 +116,16 @@ python3 -m pip install .
 Set your Z.ai API key in the environment:
 
 ```bash
-export ZQUOTA_API_KEY='your-api-key'
+export ZAI_API_KEY='your-api-key'
 ```
 
 Supported environment variables:
 
 | Variable | Required | Description | Default |
 |---|:---:|---|---|
-| `ZQUOTA_API_KEY` | yes | Bearer token used to query the quota endpoint | none |
-| `ZQUOTA_API_URL` | no | Alternate quota endpoint, mainly useful for testing | `https://api.z.ai/api/monitor/usage/quota/limit` |
-| `ZQUOTA_TIMEZONE` | no | Timezone used for displayed reset times | `Europe/London` |
+| `ZAI_API_KEY` | yes | Bearer token used to query the quota endpoint | none |
+| `ZAI_API_URL` | no | Alternate quota endpoint, mainly useful for testing | `https://api.z.ai/api/monitor/usage/quota/limit` |
+| `ZAI_TIMEZONE` | no | Timezone used for displayed reset times | `Europe/London` |
 
 CLI flags take precedence over environment variables.
 

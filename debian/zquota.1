@@ -33,10 +33,10 @@ Disable ANSI color output.
 Display reset times in an IANA timezone.
 .TP
 .B \-\-api-key \fIKEY\fR
-Z.ai API key. Defaults to the ZQUOTA_API_KEY environment variable.
+Z.ai API key. Defaults to the ZAI_API_KEY environment variable.
 .TP
 .B \-\-api-url \fIURL\fR
-Quota endpoint URL. Defaults to the ZQUOTA_API_URL environment variable or the
+Quota endpoint URL. Defaults to the ZAI_API_URL environment variable or the
 built-in Z.ai quota endpoint.
 .TP
 .B \-w, \-\-watch \fISECONDS\fR
@@ -46,13 +46,13 @@ Refresh output every N seconds.
 Exit with code 2 if any quota usage is at or above PERCENT.
 .SH ENVIRONMENT
 .TP
-.B ZQUOTA_API_KEY
+.B ZAI_API_KEY
 Bearer token used to query the quota endpoint.
 .TP
-.B ZQUOTA_API_URL
+.B ZAI_API_URL
 Optional replacement quota endpoint.
 .TP
-.B ZQUOTA_TIMEZONE
+.B ZAI_TIMEZONE
 Default display timezone.
 .SH EXIT STATUS
 .TP
