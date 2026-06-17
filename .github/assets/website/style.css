@@ -60,9 +60,13 @@ a {
   width: 42px;
   height: 42px;
   border-radius: 10px;
-  background: var(--text);
-  color: var(--bg);
-  font-weight: 800;
+  overflow: hidden;
+}
+
+.brand-mark img {
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 
 .brand strong,
