@@ -1,0 +1,205 @@
+name: Automated Release Candidate
+
+on:
+  workflow_run:
+    workflows:
+      - Build and Validate
+    types:
+      - completed
+  workflow_dispatch:
+
+concurrency:
+  group: automated-release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  actions: write
+  contents: write
+
+jobs:
+  tag:
+    name: Create Release Candidate Tag
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (
+        github.event.workflow_run.conclusion == 'success' &&
+        github.event.workflow_run.event == 'push' &&
+        github.event.workflow_run.head_branch == 'main'
+      )
+    runs-on: ubuntu-latest
+
+    env:
+      RELEASE_SHA: ${{ github.event_name == 'workflow_dispatch' && github.sha || github.event.workflow_run.head_sha }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+          ref: ${{ env.RELEASE_SHA }}
+
+      - name: Fetch tags
+        run: git fetch --tags --force
+
+      - name: Skip if release tag already exists on HEAD
+        id: existing
+        run: |
+          existing_tag="$(git tag --points-at "${RELEASE_SHA}" --list 'v*' | head -n1 || true)"
+          if [ -n "${existing_tag}" ]; then
+            echo "release_required=false" >> "${GITHUB_OUTPUT}"
+            echo "existing_tag=${existing_tag}" >> "${GITHUB_OUTPUT}"
+          else
+            echo "release_required=true" >> "${GITHUB_OUTPUT}"
+          fi
+
+      - name: Compute next release tag
+        id: release
+        if: steps.existing.outputs.release_required == 'true'
+        run: |
+          while IFS='=' read -r key value; do
+            echo "${key}=${value}" >> "${GITHUB_OUTPUT}"
+          done < <(bash scripts/next-release.sh)
+
+      - name: Compute next prerelease tag
+        id: candidate
+        if: steps.existing.outputs.release_required == 'true' && steps.release.outputs.release_required == 'true'
+        run: |
+          stable_tag="${{ steps.release.outputs.next_tag }}"
+          latest_candidate="$(
+            git tag --list "${stable_tag}-rc.*" --sort=-v:refname \
+              | head -n1 || true
+          )"
+          rc_number=1
+          if [ -n "${latest_candidate}" ]; then
+            rc_number="${latest_candidate##*.}"
+            rc_number="$((rc_number + 1))"
+          fi
+          echo "stable_tag=${stable_tag}" >> "${GITHUB_OUTPUT}"
+          echo "candidate_tag=${stable_tag}-rc.${rc_number}" >> "${GITHUB_OUTPUT}"
+
+      - name: Update release metadata on main
+        id: metadata
+        if: steps.existing.outputs.release_required == 'true' && steps.release.outputs.release_required == 'true'
+        env:
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          RELEASE_AUTOMATION_TOKEN: ${{ secrets.RELEASE_AUTOMATION_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          git fetch origin "refs/heads/${DEFAULT_BRANCH}:refs/remotes/origin/${DEFAULT_BRANCH}" --force
+          remote_sha="$(git rev-parse "refs/remotes/origin/${DEFAULT_BRANCH}")"
+          if [ "${remote_sha}" != "${RELEASE_SHA}" ]; then
+            echo "main has moved from ${RELEASE_SHA} to ${remote_sha}; a newer release workflow run will handle it."
+            echo "updated=true" >> "${GITHUB_OUTPUT}"
+            echo "reason=stale-main" >> "${GITHUB_OUTPUT}"
+            exit 0
+          fi
+
+          bash scripts/update-release-metadata.sh \
+            "${{ steps.candidate.outputs.stable_tag }}" \
+            "${{ steps.release.outputs.previous_tag }}" \
+            "${RELEASE_SHA}"
+
+          if git diff --quiet -- zquota.py pyproject.toml debian/changelog; then
+            echo "updated=false" >> "${GITHUB_OUTPUT}"
+            exit 0
+          fi
+
+          if [ -z "${RELEASE_AUTOMATION_TOKEN:-}" ]; then
+            echo "RELEASE_AUTOMATION_TOKEN is required to push release metadata commits so follow-up validation workflows are triggered." >&2
+            exit 1
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add zquota.py pyproject.toml debian/changelog
+          git commit -m "chore(release): update release metadata for ${{ steps.candidate.outputs.stable_tag }}"
+
+          if ! git push \
+            "https://x-access-token:${RELEASE_AUTOMATION_TOKEN}@github.com/${GITHUB_REPOSITORY}.git" \
+            "HEAD:refs/heads/${DEFAULT_BRANCH}" 2>push.err; then
+            cat push.err >&2
+            if grep -Eiq 'non-fast-forward|fetch first|stale info|rejected' push.err; then
+              echo "main moved while pushing the release metadata update; a newer release workflow run will handle it."
+              echo "updated=true" >> "${GITHUB_OUTPUT}"
+              echo "reason=stale-main" >> "${GITHUB_OUTPUT}"
+              exit 0
+            fi
+            exit 1
+          fi
+
+          echo "updated=true" >> "${GITHUB_OUTPUT}"
+          echo "reason=pushed" >> "${GITHUB_OUTPUT}"
+
+      - name: Create and push prerelease tag
+        if: steps.existing.outputs.release_required == 'true' && steps.release.outputs.release_required == 'true' && steps.metadata.outputs.updated != 'true'
+        env:
+          DEFAULT_GH_TOKEN: ${{ github.token }}
+          RELEASE_AUTOMATION_TOKEN: ${{ secrets.RELEASE_AUTOMATION_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          push_token="${RELEASE_AUTOMATION_TOKEN:-${DEFAULT_GH_TOKEN}}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "${{ steps.candidate.outputs.candidate_tag }}" -m "Release candidate ${{ steps.candidate.outputs.candidate_tag }}"
+          if ! git push "https://x-access-token:${push_token}@github.com/${GITHUB_REPOSITORY}.git" "refs/tags/${{ steps.candidate.outputs.candidate_tag }}" 2>push.err; then
+            cat push.err >&2
+            if grep -Fq "without 'workflows' permission" push.err && [ -z "${RELEASE_AUTOMATION_TOKEN:-}" ]; then
+              echo "Add a RELEASE_AUTOMATION_TOKEN secret with contents and workflows write access for automated release tags." >&2
+            fi
+            exit 1
+          fi
+
+      - name: Dispatch prerelease publish workflow
+        if: steps.existing.outputs.release_required == 'true' && steps.release.outputs.release_required == 'true' && steps.metadata.outputs.updated != 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_AUTOMATION_TOKEN: ${{ secrets.RELEASE_AUTOMATION_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          if [ -n "${RELEASE_AUTOMATION_TOKEN:-}" ]; then
+            echo "RELEASE_AUTOMATION_TOKEN is configured; tag push events should trigger release publishing."
+            exit 0
+          fi
+
+          gh workflow run release-assets.yml \
+            --ref "${{ steps.candidate.outputs.candidate_tag }}" \
+            -f release_ref="${{ steps.candidate.outputs.candidate_tag }}"
+
+      - name: Wait for prerelease publish workflow
+        if: steps.existing.outputs.release_required == 'true' && steps.release.outputs.release_required == 'true' && steps.metadata.outputs.updated != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          bash scripts/wait-for-tag-workflow-runs.sh \
+            "${{ steps.candidate.outputs.candidate_tag }}" \
+            "${RELEASE_SHA}" \
+            release-assets.yml
+
+      - name: Write workflow summary
+        run: |
+          if [ "${{ steps.existing.outputs.release_required }}" = "false" ]; then
+            printf "Release tag already present on HEAD: \`%s\`\n" "${{ steps.existing.outputs.existing_tag }}" >> "${GITHUB_STEP_SUMMARY}"
+            exit 0
+          fi
+
+          if [ "${{ steps.release.outputs.release_required }}" != "true" ]; then
+            printf "No releasable commits were found since \`%s\`; skipping automated RC tagging.\n" "${{ steps.release.outputs.previous_tag }}" >> "${GITHUB_STEP_SUMMARY}"
+            exit 0
+          fi
+
+          if [ "${{ steps.metadata.outputs.updated }}" = "true" ]; then
+            printf "Updated release metadata for \`%s\` (%s); release tagging will continue after the metadata commit validates on \`main\`.\n" \
+              "${{ steps.candidate.outputs.stable_tag }}" \
+              "${{ steps.metadata.outputs.reason }}" >> "${GITHUB_STEP_SUMMARY}"
+            exit 0
+          fi
+
+          printf "Created automated release candidate \`%s\` for stable target \`%s\` with matching source versions (%s bump from \`%s\`).\n" \
+            "${{ steps.candidate.outputs.candidate_tag }}" \
+            "${{ steps.candidate.outputs.stable_tag }}" \
+            "${{ steps.release.outputs.bump }}" \
+            "${{ steps.release.outputs.previous_tag }}" >> "${GITHUB_STEP_SUMMARY}"
