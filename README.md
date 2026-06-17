@@ -243,4 +243,6 @@ Issues and pull requests are welcome at [netspeedy/zquota](https://github.com/ne
 
 ## License
 
-`zquota` is released under the [MIT License](LICENSE).
+Copyright © 2026 [Simon Oakes](https://github.com/soakes). Released under the [MIT License](LICENSE).
+
+`zquota` is an unofficial community tool and is not affiliated with, endorsed by, or sponsored by [Z.ai](https://z.ai).
