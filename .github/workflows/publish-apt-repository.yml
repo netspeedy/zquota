@@ -303,6 +303,7 @@ jobs:
     permissions:
       pages: write
       id-token: write
+      actions: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -311,3 +312,13 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
+
+      - name: Refresh Pages site from the new snapshot
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # The pages-snapshot branch now holds this release. Dispatch the site
+          # refresher so its concurrency gate cancels any stale in-flight run
+          # that restored an older snapshot, guaranteeing this version is live.
+          gh workflow run deploy-pages-site.yml --repo "${GITHUB_REPOSITORY}"
