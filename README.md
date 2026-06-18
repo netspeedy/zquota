@@ -36,11 +36,9 @@ export ZAI_API_KEY='your-api-key'
 zquota
 ```
 
-Prefer `pip`? `python3 -m pip install git+https://github.com/netspeedy/zquota.git`. See [Installation](#installation) for APT, source, and script options.
+Prefer another install path? See [Installation](#installation) for `pip`, APT, source, and standalone script options.
 
 **Quick links:** [Website & APT repo](https://netspeedy.github.io/zquota/) · [Releases](https://github.com/netspeedy/zquota/releases) · [Usage guide](docs/usage.md) · [Release flow](docs/release.md) · [License](LICENSE)
-
----
 
 ## Overview
 
