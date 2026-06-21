@@ -1,0 +1,12 @@
+{
+  "site_url": "https://netspeedy.github.io/zquota/",
+  "release_version": "v0.1.2",
+  "commit": "8ceef36121b2cad55652d4a61719d7d32d956907",
+  "build_date": "2026-06-17T23:43:29Z",
+  "apt_fingerprint": "DDD9 21F2 DC58 4A5B D421 8FD9 6946 EE31 E131 3662",
+  "release_highlights": [
+    "ci: dispatch pages site refresh after apt publish to prevent stale deploys (578e813)",
+    "fix: mention ZAI_API_URL in --api-url help for consistency (119724d)",
+    "chore(release): update release metadata for v0.1.2 (8ceef36)"
+  ]
+}
