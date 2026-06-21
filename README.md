@@ -1,11 +1,5 @@
 <p align="center">
-  <img src="assets/readme-header.png" alt="zquota - Fast zero-dependency CLI for Z.ai quota usage">
-</p>
-
-<h1 align="center">zquota</h1>
-
-<p align="center">
-  A fast, zero-dependency terminal CLI for Z.ai quota usage, remaining capacity, and exact reset times.
+  <img src="assets/readme-header.png" width="960" alt="zquota - Fast zero-dependency CLI for Z.ai quota usage">
 </p>
 
 <p align="center">
