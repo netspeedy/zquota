@@ -1,5 +1,5 @@
 <p align="center">
-  <img src=".github/assets/website/favicon.svg" width="96" height="96" alt="zquota">
+  <img src="assets/readme-header.png" alt="zquota - Fast zero-dependency CLI for Z.ai quota usage">
 </p>
 
 <h1 align="center">zquota</h1>
