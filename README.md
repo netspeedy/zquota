@@ -21,6 +21,8 @@
 
 > **Unofficial tool, not affiliated with [Z.ai](https://z.ai).**
 
+---
+
 ### Quickstart
 
 ```bash
