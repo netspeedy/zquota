@@ -12,6 +12,8 @@
   <a href="https://buymeacoffee.com/soakes"><img src="https://img.shields.io/badge/Buy%20Me%20a%20Coffee-support-FFDD00.svg?style=flat-square&logo=buymeacoffee&logoColor=000000" alt="Buy Me a Coffee"></a>
 </p>
 
+---
+
 **zquota** turns the Z.ai quota API into a clear terminal view — your current plan, colour-coded usage bars, and the exact reset time for every rolling window. It exists because the Z.ai usage charts don't make the five-hour rolling reset obvious enough when you're planning work.
 
 - **Zero runtime dependencies** — runs on the Python 3.12+ standard library alone.
@@ -20,8 +22,6 @@
 - **Install anywhere** — Homebrew formula, signed APT repository, `pip`, or a single downloadable script.
 
 > **Unofficial tool, not affiliated with [Z.ai](https://z.ai).**
-
----
 
 ### Quickstart
 
@@ -35,6 +35,8 @@ zquota
 Prefer another install path? See [Installation](#installation) for `pip`, APT, source, and standalone script options.
 
 **Quick links:** [Website & APT repo](https://netspeedy.github.io/zquota/) · [Releases](https://github.com/netspeedy/zquota/releases) · [Usage guide](docs/usage.md) · [Release flow](docs/release.md) · [License](LICENSE)
+
+---
 
 ## Overview
 
