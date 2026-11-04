@@ -29,6 +29,3 @@ env/
 .DS_Store
 .env
 .env.*
-
-# Cached by scripts/readme/measure_headline.py
-scripts/readme/inter-latin.ttf

@@ -44,7 +44,7 @@ website-build:
 	npm --prefix $(WEBSITE_DIR) run build
 
 readme-hero:
-	$(PYTHON) $(HERO)/build_readme_hero.py
+	uv run $(HERO)/build_readme_hero.py
 
 package:
 	dpkg-buildpackage -us -uc -b
