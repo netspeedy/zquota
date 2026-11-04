@@ -1,4 +1,6 @@
 class Zquota < Formula
+  include Language::Python::Shebang
+
   desc "Z.ai quota monitor with terminal and JSON output"
   homepage "https://github.com/netspeedy/zquota"
   url "https://github.com/netspeedy/zquota/releases/download/v1.0.1/zquota-1.0.1.tar.gz"
@@ -8,10 +10,12 @@ class Zquota < Formula
   depends_on "python@3.13"
 
   def install
+    rewrite_shebang detected_python_shebang, "zquota.py"
     bin.install "zquota.py" => "zquota"
   end
 
   test do
-    assert_match "usage", shell_output("#{bin}/zquota --help 2>&1", 1)
+    assert_match "usage", shell_output("#{bin}/zquota --help")
+    assert_match version.to_s, shell_output("#{bin}/zquota --version")
   end
 end
