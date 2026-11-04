@@ -1,3 +1,33 @@
+zquota (0.1.3-1) stable; urgency=medium
+
+  * Use the branded favicon logo in masthead and footer.
+  * Add Open Graph and Twitter Card metadata for link previews.
+  * Simplify README install signpost.
+  * Bump actions/checkout from 6 to 7.
+  * Update README header image.
+  * Simplify README hero header.
+  * Separate README quickstart.
+  * Frame README intro section.
+  * Separate README quickstart section.
+  * Bump actions/setup-node from 6 to 7.
+  * Bump actions/setup-python from 6 to 7.
+  * Bump release-drafter/release-drafter from 7 to 7.6.0.
+  * Bump release-drafter/release-drafter from 7.6.0 to 7.7.0.
+  * Bump release-drafter/release-drafter from 7.7.0 to 7.9.0.
+  * Bump release-drafter/release-drafter from 7.9.0 to 7.10.0.
+  * Replace the README hero with a generated banner (#8).
+  * Run the formula on Homebrew's Python (#9).
+  * Move the website out of .github so Dependabot can update it (#10).
+  * Bump nanoid from 3.3.12 to 3.3.20 in /website.
+  * Bump tinyglobby from 0.2.16 to 0.2.17 in /website.
+  * Bump tslib from 2.8.1 to 2.9.1 in /website.
+  * Bump postcss from 8.5.14 to 8.5.32 in /website.
+  * Bump lightningcss from 1.32.0 to 1.33.0 in /website.
+  * Bump @napi-rs/wasm-runtime from 1.1.4 to 1.2.7 in /website.
+  * Bump @tybys/wasm-util from 0.10.2 to 0.10.4 in /website.
+
+ -- Simon Oakes <813389+soakes@users.noreply.github.com>  Wed, 04 Nov 2026 01:28:05 +0000
+
 zquota (0.1.2-1) stable; urgency=medium
 
   * Dispatch pages site refresh after apt publish to prevent stale deploys.
