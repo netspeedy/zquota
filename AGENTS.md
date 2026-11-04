@@ -14,7 +14,7 @@ windows.
 - Keep release helper scripts in `scripts/`.
 - Keep the README hero generator in `scripts/readme/`. `make readme-hero` generates
   `assets/zquota-readme-hero.svg` and the social cards with it (`website/public/og-image.*`
-  and `assets/zquota-social-preview.png`); edit the script, not the generated files.
+  and `assets/zquota-social-card.png`); edit the script, not the generated files.
   `netspeedy/homebrew-zquota` carries a copy of the script and the same SVG, so
   copy hero changes across.
 - Keep GitHub Actions, labels, Dependabot, and release-drafter metadata under
