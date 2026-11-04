@@ -1,10 +1,11 @@
 <p align="center">
-  <img src="assets/readme-header.png" width="960" alt="zquota - Fast zero-dependency CLI for Z.ai quota usage">
+  <img src="assets/zquota-readme-hero.svg" width="960" alt="zquota - no quota guesswork, exact reset times. Your Z.ai plan, usage bars and the exact reset time for every rolling window.">
 </p>
 
 <p align="center">
   <a href="https://github.com/netspeedy/zquota/actions/workflows/build-and-validate.yml"><img src="https://img.shields.io/github/actions/workflow/status/netspeedy/zquota/build-and-validate.yml?branch=main&style=flat-square&label=validate" alt="Validate"></a>
   <a href="https://github.com/netspeedy/zquota/releases"><img src="https://img.shields.io/github/v/release/netspeedy/zquota?sort=semver&style=flat-square" alt="Release"></a>
+  <a href="https://github.com/netspeedy/homebrew-zquota"><img src="https://img.shields.io/badge/Homebrew-tap-FBB040?style=flat-square&logo=homebrew&logoColor=black" alt="Homebrew tap"></a>
   <a href="https://netspeedy.github.io/zquota/"><img src="https://img.shields.io/badge/APT-signed%20repository-00897B?style=flat-square" alt="APT Repository"></a>
   <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.12%2B-3776AB.svg?style=flat-square&logo=python&logoColor=white" alt="Python"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-2EA043.svg?style=flat-square" alt="License"></a>
@@ -14,48 +15,22 @@
 
 ---
 
-**zquota** turns the Z.ai quota API into a clear terminal view — your current plan, colour-coded usage bars, and the exact reset time for every rolling window. It exists because the Z.ai usage charts don't make the five-hour rolling reset obvious enough when you're planning work.
+zquota shows how much of your Z.ai quota you've used and exactly when each window
+resets. Z.ai's usage charts don't make the five-hour rolling reset obvious when
+you're planning work, so zquota reads the same quota API and prints your plan, a
+colour-coded bar for each window, and the reset time in your own timezone.
 
-- **Zero runtime dependencies** — runs on the Python 3.12+ standard library alone.
-- **Five output modes** — human, compact, JSON, JSON Lines, and raw.
-- **Built for automation** — watch mode for a live dashboard, plus a dedicated threshold exit code for cron and shell scripts.
-- **Install anywhere** — Homebrew formula, signed APT repository, `pip`, or a single downloadable script.
+It's a single Python file that only needs the standard library. The default view is
+for people; `--compact`, `--json`, `--jsonl` and `--raw` are for scripts. `--watch`
+keeps the view live, and `--threshold` exits with code 2 when a window crosses the
+line you set, so cron can tell quota pressure apart from a bad key or a network
+failure.
 
-> **Unofficial tool, not affiliated with [Z.ai](https://z.ai).**
+**Quick links:** [Install](#install) · [Try it](#try-it) · [Usage guide](docs/usage.md) · [Releases](https://github.com/netspeedy/zquota/releases) · [Website and APT repository](https://netspeedy.github.io/zquota/)
 
----
+## Install
 
-### Quickstart
-
-```bash
-brew tap netspeedy/zquota
-brew install zquota
-export ZAI_API_KEY='your-api-key'
-zquota
-```
-
-Prefer another install path? See [Installation](#installation) for `pip`, APT, source, and standalone script options.
-
-**Quick links:** [Website & APT repo](https://netspeedy.github.io/zquota/) · [Releases](https://github.com/netspeedy/zquota/releases) · [Usage guide](docs/usage.md) · [Release flow](docs/release.md) · [License](LICENSE)
-
----
-
-## Overview
-
-Z.ai exposes quota information through an authenticated API endpoint. `zquota` turns that response into:
-
-- the current Z.ai plan level
-- the known quota windows, including the five-hour rolling token quota
-- percentage used and percentage remaining
-- limit, used, and remaining unit counts
-- the exact reset time in your chosen timezone
-- UTC reset timestamp and epoch milliseconds for machine-readable output
-
-## Installation
-
-**Requirements:** Python 3.12 or newer.
-
-### Homebrew (macOS and Linux)
+zquota needs Python 3.12 or newer. On macOS or Linux, Homebrew is the easiest route:
 
 ```bash
 brew tap netspeedy/zquota
@@ -64,7 +39,7 @@ brew install zquota
 
 > On recent Homebrew, new third-party taps require explicit trust. If installation is refused, run `brew trust netspeedy/zquota` once, then `brew install zquota`.
 
-### Signed APT repository (Debian and Ubuntu)
+On Debian and Ubuntu, use the signed APT repository:
 
 ```bash
 sudo install -d -m 0755 /etc/apt/keyrings
@@ -83,15 +58,14 @@ sudo apt update
 sudo apt install zquota
 ```
 
-### pip
+pip can install it straight from the repository:
 
 ```bash
 python3 -m pip install git+https://github.com/netspeedy/zquota.git
 ```
 
-### Download the script
-
-No install at all — just download and run:
+Or skip installing altogether. zquota is one file, so you can download it, make it
+executable and put it somewhere on your `PATH`:
 
 ```bash
 mkdir -p ~/.local/bin
@@ -99,43 +73,18 @@ curl -fsSL https://raw.githubusercontent.com/netspeedy/zquota/main/zquota.py -o 
 chmod +x ~/.local/bin/zquota
 ```
 
-Make sure `~/.local/bin` is on your `PATH`.
+To build from a checkout, run `python3 -m pip install .` in the cloned repository.
 
-### Build from source
+## Try it
 
-```bash
-git clone https://github.com/netspeedy/zquota.git
-cd zquota
-python3 -m pip install .
-```
-
-## Configuration
-
-Set your Z.ai API key in the environment:
+Set your API key and run it:
 
 ```bash
 export ZAI_API_KEY='your-api-key'
-```
-
-Supported environment variables:
-
-| Variable | Required | Description | Default |
-|---|:---:|---|---|
-| `ZAI_API_KEY` | yes | Bearer token used to query the quota endpoint | none |
-| `ZAI_API_URL` | no | Alternate quota endpoint, mainly useful for testing | `https://api.z.ai/api/monitor/usage/quota/limit` |
-| `ZAI_TIMEZONE` | no | Timezone used for displayed reset times | `Europe/London` |
-
-CLI flags take precedence over environment variables.
-
-## Usage
-
-Run the default terminal view:
-
-```bash
 zquota
 ```
 
-Example output:
+You get your plan and a block for each quota window:
 
 ```text
   Z.ai plan: pro
@@ -146,13 +95,15 @@ Example output:
   │  Remaining: 50%
   │  Limit:      1.0M
   │  Used:       500.0k
-  │  Remaining: 500.0k
+  │  Remaining:  500.0k
   │  Resets in:   30m
   │  Resets at:   2026-05-23 15:00:00 BST
   ──────────────────────────────────
 ```
 
-Common flags — `-c`/`--compact`, `-j`/`--json`, `--jsonl`, `--raw`, `-z`/`--timezone`, `-w`/`--watch`, `-t`/`--threshold`:
+The bar turns yellow at 70% and red at 90%. Reset times are shown in
+`Europe/London` unless you pass `--timezone` or set `ZAI_TIMEZONE`. Flags win over
+environment variables. A few common ones:
 
 ```bash
 zquota --compact                 # one line per quota
@@ -161,7 +112,25 @@ zquota --watch 30                # live, refresh every 30s
 zquota --threshold 80            # exit 2 if any quota is at/above 80%
 ```
 
+[docs/usage.md](docs/usage.md) covers authentication, timezones, the JSON fields, a
+cron example and troubleshooting.
+
+## Configuration
+
+zquota reads its settings from the environment:
+
+| Variable | Required | Description | Default |
+|---|:---:|---|---|
+| `ZAI_API_KEY` | yes | Bearer token used to query the quota endpoint | none |
+| `ZAI_API_URL` | no | Alternate quota endpoint, mainly useful for testing | `https://api.z.ai/api/monitor/usage/quota/limit` |
+| `ZAI_TIMEZONE` | no | Timezone used for displayed reset times | `Europe/London` |
+
+`--api-key` also works, but a key on the command line ends up in your shell history
+and the process list, so the environment variable is the better habit.
+
 ## Output formats
+
+Only one format flag can be used at a time:
 
 | Format | Flag | Use case |
 |---|---|---|
@@ -171,7 +140,8 @@ zquota --threshold 80            # exit 2 if any quota is at/above 80%
 | JSON Lines | `--jsonl` | Logs and append-only collection |
 | Raw | `--raw` | Debugging the upstream API response |
 
-JSON output includes both local and UTC reset fields:
+The JSON formats carry the reset time three ways: `resets_at` in your timezone,
+`resets_at_utc` and `reset_epoch_ms`.
 
 ```bash
 zquota --json | jq '.quotas[] | {quota: .name_compact, local: .resets_at, utc: .resets_at_utc}'
@@ -193,11 +163,12 @@ zquota --json | jq '.quotas[] | {quota: .name_compact, local: .resets_at, utc: .
 | `1` | Runtime or input error |
 | `2` | Threshold exceeded when `--threshold` is set |
 
-The separate threshold exit code makes it safe to distinguish quota pressure from a broken API key, network failure, or invalid response.
+Quota pressure gets its own code so that a script can tell it apart from a broken
+API key, a network failure or an invalid response.
 
 ## Development
 
-Create a local environment and install the development tools:
+Create a virtual environment and install the development tools:
 
 ```bash
 python3 -m venv .venv
@@ -205,7 +176,7 @@ python3 -m venv .venv
 python3 -m pip install -e '.[dev]'
 ```
 
-Run the local checks:
+These checks are the minimum before a change lands:
 
 ```bash
 make fmt-check
@@ -215,40 +186,23 @@ make smoke
 make version-check
 ```
 
-Format, build, and preview the website:
+`make fmt` formats with black, `make build` builds the Python package and
+`make website-build` builds the GitHub Pages site. Releases are automated;
+[docs/release.md](docs/release.md) describes the flow.
 
-```bash
-make fmt              # format with black
-make build            # build a Python package
-make website-build    # build the GitHub Pages site
-```
+The banner at the top of this page is generated. Edit the copy, layout or timing in
+`scripts/readme/build_readme_hero.py` and run `make readme-hero` to rebuild
+`assets/zquota-readme-hero.svg`. It downloads the font subsets from Google Fonts, so
+it needs network access. If you change the headline's words, measure them again with
+`scripts/readme/measure_headline.py`, which explains its own dependencies.
 
-## Project structure
-
-```text
-zquota/
-├── zquota.py                 # CLI application
-├── tests/                    # Stdlib unittest coverage
-├── debian/                   # Debian package metadata
-├── homebrew/                 # Homebrew formula template
-├── docs/                     # Usage and release documentation
-├── scripts/                  # Release helper scripts
-├── .github/
-│   ├── assets/website/       # GitHub Pages landing site
-│   └── workflows/            # GitHub Actions release automation
-├── AGENTS.md                 # Repository rules for coding agents
-├── pyproject.toml            # Packaging and tool configuration
-├── Makefile                  # Local validation shortcuts
-├── LICENSE                   # MIT License
-└── README.md                 # Project overview
-```
-
-## Contributing
-
-Issues and pull requests are welcome at [netspeedy/zquota](https://github.com/netspeedy/zquota). The development commands above are the expected minimum validation before a change lands; see [AGENTS.md](AGENTS.md) for the full repository conventions. Releases are automated — see [docs/release.md](docs/release.md).
+Issues and pull requests are welcome. [AGENTS.md](AGENTS.md) has the full repository
+conventions.
 
 ## License
 
-Copyright © 2026 [Simon Oakes](https://github.com/soakes). Released under the [MIT License](LICENSE).
+Copyright © 2026 [Simon Oakes](https://github.com/soakes). Released under the
+[MIT License](LICENSE).
 
-`zquota` is an unofficial community tool and is not affiliated with, endorsed by, or sponsored by [Z.ai](https://z.ai).
+`zquota` is an unofficial community tool and is not affiliated with, endorsed by, or
+sponsored by [Z.ai](https://z.ai).
