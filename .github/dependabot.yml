@@ -35,7 +35,7 @@ updates:
       - python
 
   - package-ecosystem: npm
-    directory: /.github/assets/website
+    directory: /website
     open-pull-requests-limit: 10
     schedule:
       interval: daily

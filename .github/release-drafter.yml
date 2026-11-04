@@ -128,7 +128,7 @@ autolabeler:
     title:
       - '/^website(\([^)]+\))?:/i'
     files:
-      - ".github/assets/website/**/*"
+      - "website/**/*"
       - ".github/workflows/deploy-pages-site.yml"
   - label: maintenance
     title:
