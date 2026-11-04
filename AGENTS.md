@@ -18,7 +18,10 @@ windows.
   copy hero changes across.
 - Keep GitHub Actions, labels, Dependabot, and release-drafter metadata under
   `.github/`.
-- Keep the GitHub Pages landing site under `.github/assets/website/`.
+- Keep the GitHub Pages landing site under `website/`, not under `.github/`:
+  Dependabot stopped being able to open npm pull requests for manifests under
+  `.github/` in June 2026 (its create-PR call is rejected as "invalid or
+  unauthorized changes").
 - Keep root-level files for build, packaging, license, editor, and repository
   metadata only.
 - Do not add GitLab-specific CI, release, or repository metadata to this GitHub

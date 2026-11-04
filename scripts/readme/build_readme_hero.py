@@ -34,7 +34,7 @@ USER_AGENT = (
     "(KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36"
 )
 
-# The website's teal, amber and red (.github/assets/website/style.css), lifted for a dark
+# The website's teal, amber and red (website/style.css), lifted for a dark
 # banner, with the same inks as the s3ctl hero so the netspeedy banners read as one family.
 BG = "#060B13"
 INK = "#F1F5FA"
@@ -276,7 +276,7 @@ def starfield(free: list[tuple[float, float, float, float]]) -> tuple[list[str],
 
 
 def mark_symbols() -> list[str]:
-    """The bars from the website favicon (.github/assets/website/favicon.svg), without its tile."""
+    """The bars from the website favicon (website/favicon.svg), without its tile."""
     return [
         *gradient(
             "linearGradient",
