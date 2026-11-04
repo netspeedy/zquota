@@ -1,6 +1,7 @@
 PYTHON ?= python3
 SRC := zquota.py
 TESTS := tests
+HERO := scripts/readme
 WEBSITE_DIR ?= .github/assets/website
 SITE_URL ?= https://netspeedy.github.io/zquota/
 SITE_RELEASE_VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || printf '%s' dev)
@@ -8,16 +9,16 @@ SITE_COMMIT ?= $(shell git rev-parse --short HEAD 2>/dev/null || printf '%s' loc
 SITE_BUILD_DATE ?= $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
 SITE_APT_FINGERPRINT ?= Published alongside stable release builds.
 
-.PHONY: fmt fmt-check lint test smoke version-check build website-build package clean
+.PHONY: fmt fmt-check lint test smoke version-check build website-build readme-hero package clean
 
 fmt:
-	$(PYTHON) -m black $(SRC) $(TESTS)
+	$(PYTHON) -m black $(SRC) $(TESTS) $(HERO)
 
 fmt-check:
-	$(PYTHON) -m black --check $(SRC) $(TESTS)
+	$(PYTHON) -m black --check $(SRC) $(TESTS) $(HERO)
 
 lint:
-	$(PYTHON) -m ruff check $(SRC) $(TESTS)
+	$(PYTHON) -m ruff check $(SRC) $(TESTS) $(HERO)
 	$(PYTHON) -m pylint $(SRC)
 
 test:
@@ -41,6 +42,9 @@ website-build:
 	PUBLIC_BUILD_DATE=$(SITE_BUILD_DATE) \
 	PUBLIC_APT_FINGERPRINT='$(SITE_APT_FINGERPRINT)' \
 	npm --prefix $(WEBSITE_DIR) run build
+
+readme-hero:
+	$(PYTHON) $(HERO)/build_readme_hero.py
 
 package:
 	dpkg-buildpackage -us -uc -b
