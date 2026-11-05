@@ -38,6 +38,7 @@ if Z.ai is slow.
 | You press Ctrl-C, while it's waiting or during a refresh | prints a newline and stops | 0 |
 | A request fails | prints the error to standard error and stops | 1 |
 | `--threshold` is set and a window reaches it | leaves that view on screen and stops | 2 |
+| The program reading its output exits, such as `head` | stops without a message | 141 |
 
 A failed refresh ends the watch rather than retrying, so a short network outage stops it and
 you'll need to start it again.
