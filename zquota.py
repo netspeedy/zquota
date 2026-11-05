@@ -200,8 +200,13 @@ def format_reset(
     if not is_number(reset_ms):
         return None, None, None, None
 
-    reset_utc = datetime.fromtimestamp(reset_ms / 1000, tz=timezone.utc)
-    reset_local = reset_utc.astimezone(local_timezone)
+    try:
+        reset_utc = datetime.fromtimestamp(reset_ms / 1000, tz=timezone.utc)
+        reset_local = reset_utc.astimezone(local_timezone)
+    except (OverflowError, OSError, ValueError):
+        # A number that isn't a date, such as NaN, infinity or one outside what the platform's
+        # clock or datetime can hold, is treated like a missing reset time.
+        return None, None, None, None
     seconds_until_reset = int((reset_utc - now_utc).total_seconds())
     reset_when = reset_local.strftime("%Y-%m-%d %H:%M:%S %Z")
     reset_when_utc = reset_utc.isoformat().replace("+00:00", "Z")

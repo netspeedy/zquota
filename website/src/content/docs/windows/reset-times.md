@@ -83,6 +83,6 @@ refresh, so it's on screen until the second one clears it.
 
 ## Windows without a reset time
 
-If a window has no `nextResetTime`, or it isn't a number, zquota leaves the `Resets in` and
-`Resets at` lines out of the default view, shows `reset: -` in the compact view, and sets all four
-fields to `null` in JSON.
+If a window has no `nextResetTime`, or it isn't a number that makes a date, zquota leaves the
+`Resets in` and `Resets at` lines out of the default view, shows `reset: -` in the compact view,
+and sets all four fields to `null` in JSON.
