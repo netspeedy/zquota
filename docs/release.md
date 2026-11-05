@@ -74,6 +74,11 @@ The stable-only `Publish Signed Debian Repository` workflow publishes:
 - `zquota-archive-keyring.fingerprint.txt`
 - the docs site, which shares the Pages root with the repository
 
+The stable-only `Publish Homebrew Formula` workflow writes `Formula/zquota.rb` with the release
+tarball's URL and SHA256 and pushes it to `netspeedy/homebrew-zquota`. The formula is written out in
+that workflow, so a change to it goes there and ships with the next stable release; the tap's copy
+is overwritten each time.
+
 The Python package build is validated in CI, but the runtime remains a simple stdlib-only script.
 
 ## Website

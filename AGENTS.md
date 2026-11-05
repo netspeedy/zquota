@@ -12,7 +12,6 @@ windows.
   in `docs/` other than `release.md` are pointers kept so old links still land
   somewhere; don't add guides there.
 - Keep Debian packaging metadata in `debian/`.
-- Keep Homebrew formula in `homebrew/`.
 - Keep release helper scripts in `scripts/`.
 - Keep the README hero generator in `scripts/readme/`. `make readme-hero` generates
   `assets/zquota-readme-hero.svg`, the social cards (`website/public/og-image.*`
@@ -167,8 +166,10 @@ windows.
   source package files, `sha256sums.txt`, a signed stable APT repository on
   GitHub Pages, and an updated Homebrew formula to the `homebrew-zquota` tap.
 - Keep APT keyring filenames under the `zquota-archive-keyring.*` pattern.
-- Keep `homebrew/zquota.rb` as the formula template. The publish workflow updates
-  the URL and SHA256 and pushes to `netspeedy/homebrew-zquota`.
+- The Homebrew formula is written by `.github/workflows/publish-homebrew-formula.yml`,
+  which fills in the release tarball's URL and SHA256 and pushes it to
+  `netspeedy/homebrew-zquota`. Change the formula there; the tap's copy is
+  overwritten on each stable release.
 - Keep `Makefile` as the contributor-facing source of truth for common local
   validation commands.
 

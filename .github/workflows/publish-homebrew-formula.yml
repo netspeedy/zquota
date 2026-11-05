@@ -111,10 +111,31 @@ jobs:
           gh repo clone "${tap_repo}" "${tmpdir}/tap" -- --depth=1
           mkdir -p "${tmpdir}/tap/Formula"
 
-          sed \
-            -e "s|^  url \".*\"|  url \"https://github.com/${{ github.repository }}/releases/download/v${version}/zquota-${version}.tar.gz\"|" \
-            -e "s|^  sha256 \".*\"|  sha256 \"${sha256}\"|" \
-            homebrew/zquota.rb > "${tmpdir}/tap/Formula/zquota.rb"
+          # The formula is written here, as the other netspeedy taps' are, so change it here and
+          # the next stable release publishes it.
+          cat > "${tmpdir}/tap/Formula/zquota.rb" <<EOF
+          class Zquota < Formula
+            include Language::Python::Shebang
+
+            desc "Z.ai quota monitor with terminal and JSON output"
+            homepage "https://github.com/${GITHUB_REPOSITORY}"
+            url "https://github.com/${GITHUB_REPOSITORY}/releases/download/v${version}/zquota-${version}.tar.gz"
+            sha256 "${sha256}"
+            license "MIT"
+
+            depends_on "python@3.13"
+
+            def install
+              rewrite_shebang detected_python_shebang, "zquota.py"
+              bin.install "zquota.py" => "zquota"
+            end
+
+            test do
+              assert_match "usage", shell_output("#{bin}/zquota --help")
+              assert_match version.to_s, shell_output("#{bin}/zquota --version")
+            end
+          end
+          EOF
 
           cd "${tmpdir}/tap"
           git config user.name "github-actions[bot]"
