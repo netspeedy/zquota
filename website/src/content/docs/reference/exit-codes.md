@@ -5,10 +5,10 @@ description: What zquota's exit codes 0, 1, 2 and 130 mean, and which failures p
 
 | Code | Meaning |
 | --- | --- |
-| `0` | Success. With `--threshold`, every window is under it. `--version` and `--help` exit with 0 too, as does Ctrl-C while `--watch` is waiting between refreshes. |
+| `0` | Success. With `--threshold`, every window is under it. `--version` and `--help` exit with 0 too, as does Ctrl-C during `--watch`, whether it's waiting or refreshing. |
 | `1` | zquota couldn't get or read the quota, or a flag's value is out of range. |
 | `2` | A `--threshold` breach, or a command line zquota couldn't parse. |
-| `130` | Ctrl-C while a request was in flight, which ends in a Python traceback. |
+| `130` | Ctrl-C before a run without `--watch` has finished. zquota prints a newline to standard error and stops. |
 
 ## 1: runtime and input errors
 

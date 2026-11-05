@@ -555,37 +555,43 @@ def _run_loop(args: argparse.Namespace, use_color: bool) -> int:
     """Fetch and render quota data once or repeatedly in watch mode."""
     watch_mode = args.watch is not None
 
-    while True:
-        if watch_mode:
-            sys.stdout.write("\033[2J\033[H")
-            sys.stdout.write(
-                color(
-                    f"  zquota - refreshing every {args.watch}s  (Ctrl-C to stop)\n\n",
-                    COLOR_DIM,
-                    use_color,
+    try:
+        while True:
+            if watch_mode:
+                sys.stdout.write("\033[2J\033[H")
+                sys.stdout.write(
+                    color(
+                        f"  zquota - refreshing every {args.watch}s  (Ctrl-C to stop)\n\n",
+                        COLOR_DIM,
+                        use_color,
+                    )
                 )
-            )
-            sys.stdout.flush()
+                sys.stdout.flush()
 
-        code, level, items, raw_payload = run_once(args)
+            code, level, items, raw_payload = run_once(args)
 
-        if code != 0:
-            return code
+            if code != 0:
+                return code
 
-        _render_output(args, level, items, raw_payload, use_color)
+            _render_output(args, level, items, raw_payload, use_color)
 
-        if args.threshold is not None and items is not None:
-            if check_threshold(items, args.threshold):
-                return 2
+            if args.threshold is not None and items is not None:
+                if check_threshold(items, args.threshold):
+                    return 2
 
-        if not watch_mode:
-            return 0
+            if not watch_mode:
+                return 0
 
-        try:
             time.sleep(args.watch)
-        except KeyboardInterrupt:
+    except KeyboardInterrupt:
+        # Ctrl-C is how a watch is stopped, so it ends one cleanly whether it lands during the
+        # wait or during a refresh. A single run it interrupts exits with 130, like other
+        # commands, and the newline goes to stderr so it can't end up in redirected output.
+        if watch_mode:
             print()
             return 0
+        print(file=sys.stderr)
+        return 130
 
 
 def main(argv: list[str] | None = None) -> int:
