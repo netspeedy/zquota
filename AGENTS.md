@@ -202,6 +202,10 @@ windows.
 
 ## GitHub Actions & Public Repo Security
 
+- Workflows that commit or tag do so as `netspeedybot`
+  (`45371234+netspeedybot@users.noreply.github.com`), never as
+  `github-actions[bot]`. `automated-only.sh` trusts that email, so nobody
+  commits or opens pull requests as netspeedybot by hand.
 - Treat this as a public repository. Workflow changes are security-sensitive.
 - Keep workflow permissions least-privilege.
 - Pull request workflows should validate code, not publish artifacts.
