@@ -113,6 +113,12 @@ def get_timezone(timezone_name: str) -> ZoneInfo:
         return ZoneInfo(DEFAULT_TIMEZONE)
 
 
+def resolve_timezone(args: argparse.Namespace) -> ZoneInfo:
+    """Return the display timezone from --timezone, then ZAI_TIMEZONE, then the default."""
+    # An empty ZAI_TIMEZONE counts as unset, as an empty --timezone does.
+    return get_timezone(args.timezone or os.getenv("ZAI_TIMEZONE") or DEFAULT_TIMEZONE)
+
+
 def describe_window(item: JsonDict) -> str:
     """Return a human-readable name for a quota bucket."""
     limit_kind = item.get("type")
@@ -506,6 +512,7 @@ def _handle_fetch_error(
 
 def run_once(
     args: argparse.Namespace,
+    local_tz: ZoneInfo,
 ) -> tuple[int, str | None, list[dict[str, Any]] | None, JsonDict | None]:
     """Fetch and parse quota data once; return (code, level, items, raw)."""
     api_key = args.api_key or os.getenv("ZAI_API_KEY")
@@ -515,9 +522,6 @@ def run_once(
         return 1, None, None, None
 
     api_url = args.api_url or os.getenv("ZAI_API_URL", API_URL)
-    # An empty ZAI_TIMEZONE counts as unset, as an empty --timezone does.
-    tz_name = args.timezone or os.getenv("ZAI_TIMEZONE") or DEFAULT_TIMEZONE
-    local_tz = get_timezone(tz_name)
 
     try:
         payload = fetch_json(api_key, api_url)
@@ -581,6 +585,7 @@ def _validate_args(args: argparse.Namespace) -> int | None:
 def _run_loop(args: argparse.Namespace, use_color: bool) -> int:
     """Fetch and render quota data once or repeatedly in watch mode."""
     watch_mode = args.watch is not None
+    local_tz: ZoneInfo | None = None
 
     try:
         while True:
@@ -595,7 +600,12 @@ def _run_loop(args: argparse.Namespace, use_color: bool) -> int:
                 )
                 sys.stdout.flush()
 
-            code, level, items, raw_payload = run_once(args)
+            # The timezone is resolved once, on the first pass and after the first screen clear,
+            # so an unknown name's warning shows on the first refresh and isn't repeated.
+            if local_tz is None:
+                local_tz = resolve_timezone(args)
+
+            code, level, items, raw_payload = run_once(args, local_tz)
 
             if code != 0:
                 return code

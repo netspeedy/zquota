@@ -176,6 +176,26 @@ class TimezoneTests(unittest.TestCase):
         self.assertEqual(json.loads(stdout)["quotas"][0]["timezone"], "Europe/London")
         self.assertEqual(stderr, "")
 
+    def test_unknown_timezone_warns_once_while_watching(self) -> None:
+        output = StringIO()
+        with (
+            patch("zquota.fetch_json", return_value=sample_payload()),
+            patch("time.sleep", side_effect=[None, None, KeyboardInterrupt]),
+            patch("sys.stdout", new=output),
+            patch("sys.stderr", new=output),
+        ):
+            code = zquota.main(
+                ["--api-key", "test", "--watch", "1", "--compact", "--timezone", "Mars/Base"]
+            )
+
+        text = output.getvalue()
+        clears = [i for i in range(len(text)) if text.startswith("\033[2J", i)]
+        self.assertEqual(code, 0)
+        self.assertEqual(len(clears), 3)
+        self.assertEqual(text.count("WARNING: unknown timezone 'Mars/Base'"), 1)
+        # It's printed after the first clear, so it's on screen until the second refresh.
+        self.assertTrue(clears[0] < text.index("WARNING") < clears[1])
+
     def test_path_shaped_timezone_warns_and_falls_back(self) -> None:
         for name in ("Europe/", "../etc", "/etc/localtime"):
             with self.subTest(name=name):
