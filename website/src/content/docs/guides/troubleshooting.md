@@ -70,8 +70,7 @@ ERROR: unknown url type: 'api.z.ai/api/monitor/usage/quota/limit'
 ```
 
 `--api-url` or `ZAI_API_URL` isn't a full URL. It needs its scheme, `https://` (or `file://` for a
-saved response). `ERROR: unknown url type: ''` means `ZAI_API_URL` is set but empty; an empty
-variable still replaces the default endpoint, so unset it with `unset ZAI_API_URL`.
+saved response). An empty `ZAI_API_URL` counts as unset, so it can't cause this.
 
 ## Unknown timezone
 

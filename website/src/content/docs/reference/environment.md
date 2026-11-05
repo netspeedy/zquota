@@ -28,9 +28,8 @@ warning.
 
 ## ZAI_API_URL
 
-Replaces the quota endpoint, for testing or a proxy. `--api-url` overrides it. When the variable is
-set, zquota uses its value even if it's empty, and an empty value fails with
-`ERROR: unknown url type: ''`. A `file://` URL reads a saved response from disk; see
+Replaces the quota endpoint, for testing or a proxy. `--api-url` overrides it. An empty value counts
+as unset, so zquota uses Z.ai's endpoint. A `file://` URL reads a saved response from disk; see
 [Configuration](/zquota/guides/configuration/#the-endpoint).
 
 ## What zquota doesn't read
