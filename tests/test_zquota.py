@@ -283,15 +283,27 @@ class ReadErrorTests(unittest.TestCase):
                 self.assertEqual(code, 1)
                 self.assertEqual(stderr, message)
 
+    def test_http_error_prints_its_body_and_closes_the_response(self) -> None:
+        body = BytesIO(b'{"msg": "token expired"}')
+        error = urllib.error.HTTPError(zquota.API_URL, 401, "Unauthorized", Message(), body)
+
+        code, stderr = self.run_failing(error)
+
+        self.assertEqual(code, 1)
+        self.assertEqual(stderr, 'ERROR: HTTP 401: Unauthorized\n{"msg": "token expired"}\n')
+        self.assertTrue(body.closed)
+
     def test_http_error_whose_body_times_out_still_reports_the_status(self) -> None:
+        body = BrokenBody(TimeoutError())
         error = urllib.error.HTTPError(
-            zquota.API_URL, 500, "Internal Server Error", Message(), BrokenBody(TimeoutError())
+            zquota.API_URL, 500, "Internal Server Error", Message(), body
         )
 
         code, stderr = self.run_failing(error)
 
         self.assertEqual(code, 1)
         self.assertEqual(stderr, "ERROR: HTTP 500: Internal Server Error\n")
+        self.assertTrue(body.closed)
 
 
 class ClosedPipe(StringIO):
