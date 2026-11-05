@@ -110,6 +110,20 @@ class QuotaFormattingTests(unittest.TestCase):
         )
         self.assertEqual({len(field) for field in fields}, {18}, fields)
 
+    def test_reset_time_that_is_not_a_date_counts_as_missing(self) -> None:
+        now = datetime(2026, 5, 23, 13, 30, tzinfo=timezone.utc)
+        for value in (1e20, -1e16, float("inf"), float("nan")):
+            with self.subTest(value=value):
+                item = dict(sample_payload()["data"]["limits"][0], nextResetTime=value)
+
+                quota = zquota.build_quota_item(item, zquota.get_timezone("UTC"), now)
+
+                self.assertEqual(
+                    [quota[key] for key in ("resets_in", "resets_at", "resets_at_utc")],
+                    [None, None, None],
+                )
+                self.assertIsNone(quota["reset_epoch_ms"])
+
     def test_json_lines_contains_script_friendly_reset_fields(self) -> None:
         _, limits = zquota.parse_payload(sample_payload())
         item = zquota.build_quota_item(
