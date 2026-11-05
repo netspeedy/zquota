@@ -163,6 +163,10 @@ jobs:
             SITE_COMMIT="${{ steps.website_metadata.outputs.stable_sha }}" \
             SITE_BUILD_DATE="${{ steps.website_metadata.outputs.stable_build_date }}" \
             SITE_APT_FINGERPRINT="$(jq -r '.apt_fingerprint' site/website-metadata.json)"
+          # The snapshot holds the previous site as well as the APT repository. Keep only the
+          # repository and the metadata, so files the new site no longer has aren't left published.
+          find site -mindepth 1 -maxdepth 1 ! -name dists ! -name pool \
+            ! -name 'zquota-archive-keyring.*' ! -name website-metadata.json -exec rm -rf {} +
           cp -a "${WEBSITE_DIR}/dist/." site/
           test -f site/index.html
           test -f site/dists/stable/InRelease
