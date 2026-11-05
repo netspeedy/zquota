@@ -44,9 +44,13 @@ or removed from `build_parser()` without updating `reference/cli.mdx`.
 
 ## Versioned docs
 
-Only the latest release line's pages live here. Keep page links root-relative
-(`/zquota/...`), so an older line built under `/zquota/vX.Y/` can rewrite them into
-its own path, and never copy pages into per-version folders.
+Only the latest release line's pages live here. When a new minor ships, the Release
+Assets workflow rebuilds the outgoing line from git with `SITE_ARCHIVE=vX.Y`, and
+the Pages workflows publish it under `/zquota/vX.Y/` beside the latest. Never copy
+pages into per-version folders, and keep page links root-relative (`/zquota/...`) so
+archived builds can rewrite them. The "Versioned docs" section of
+[docs/release.md](../docs/release.md#versioned-docs) has the details, including how
+to rebuild an archive by hand.
 
 ## How it's published
 
@@ -56,10 +60,11 @@ paths. Links to those files are absolute URLs, because they aren't part of the
 build and `make website-check` only follows links into it.
 
 Publish Signed Debian Repository deploys the site at release time, with the new
-packages. Deploy Pages Site runs on every push to `main` and when that publish run
-asks for it: it restores the last published APT snapshot, writes the stable
-release's tag and the archive key's fingerprint to a JSON file, builds the site
-with it in `SITE_METADATA_FILE`, runs `make website-check` and deploys both. Local
-and pull request builds have no metadata file, so they show the newest local tag
-and leave the fingerprint out. Dependabot checks the npm dependencies here daily
+packages. Deploy Pages Site runs on every push to `main`, and when that publish run
+or a new docs archive asks for it: it restores the last published APT snapshot,
+writes the stable release's tag and the archive key's fingerprint to a JSON file,
+builds the latest line with it in `SITE_METADATA_FILE`, unpacks the archived lines
+into it, runs `make website-check` and deploys both. Local and pull request builds
+have no metadata file, so they show the newest local tag and leave the fingerprint
+out. Dependabot checks the npm dependencies here daily
 and titles its pull requests `chore:`, so a site update doesn't cut a release.
