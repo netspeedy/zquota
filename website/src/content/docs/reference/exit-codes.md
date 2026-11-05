@@ -17,7 +17,7 @@ Each of these prints `ERROR: <reason>` to standard error:
 - no API key in `--api-key` or `ZAI_API_KEY`
 - `--watch` below 1, `--threshold` outside 0 to 100, or `--threshold` with `--raw`
 - an HTTP error status from Z.ai
-- a request that couldn't be made or timed out
+- a request that couldn't be made, timed out, or broke off before the whole answer arrived
 - an endpoint that isn't a full URL
 - an answer that isn't JSON, isn't a JSON object, has `success` set to false, or has no `data`
   object or `limits` list
@@ -25,8 +25,8 @@ Each of these prints `ERROR: <reason>` to standard error:
 With `--watch`, a failed refresh stops the watch with 1. An unknown timezone is only a warning and
 doesn't change the exit code.
 
-The few failures zquota doesn't catch, such as a connection that breaks while the answer is being
-read, end in a Python traceback, and Python exits with 1 for those too.
+A failure zquota doesn't expect, such as a `UnicodeEncodeError` when the output encoding isn't
+UTF-8, ends in a Python traceback, and Python exits with 1 for those too.
 [Troubleshooting](/zquota/guides/troubleshooting/) covers each error.
 
 ## 2: threshold breach or usage error

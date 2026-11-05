@@ -27,8 +27,8 @@ ERROR: HTTP 401: Unauthorized
 ```
 
 Z.ai answered with an error status. zquota prints the status, its reason and then the body of the
-response on the following lines, if there was one, because Z.ai's explanation is usually in the
-body. A 401 or 403 usually means the key is wrong, has been revoked or can't read the quota
+response on the following lines, if there was one and it arrived, because Z.ai's explanation is
+usually in the body. A 401 or 403 usually means the key is wrong, has been revoked or can't read the quota
 endpoint. A 404 means the endpoint address is wrong, so check `ZAI_API_URL` and `--api-url`.
 
 ## The request failed
@@ -37,11 +37,17 @@ endpoint. A 404 means the endpoint address is wrong, so check `ZAI_API_URL` and 
 ERROR: request failed: [Errno 8] nodename nor servname provided, or not known
 ```
 
-zquota couldn't get an answer at all. The reason after the colon comes from the system, and varies
-between operating systems: a name that
-doesn't resolve, a refused connection, a certificate problem or `timed out` when Z.ai didn't answer
-within 20 seconds. Check your network, any proxy in the way, and the endpoint address if you've
-changed it.
+zquota didn't get a whole answer. The reason after the colon usually comes from the system, and
+varies between operating systems: a name that doesn't resolve, a refused or reset connection, a
+certificate problem, or `timed out` when Z.ai went quiet for 20 seconds, before answering or
+part-way through. Two reasons come from zquota itself:
+
+| Reason | What it means |
+| --- | --- |
+| `the response broke off after N bytes` | The connection closed before the whole answer arrived. |
+| `invalid HTTP response: ...` | Whatever answered doesn't speak HTTP, often a wrong port in the endpoint or a proxy problem. |
+
+Check your network, any proxy in the way, and the endpoint address if you've changed it.
 
 ## Errors about the response
 
@@ -109,6 +115,6 @@ boxes, your terminal font doesn't have them; pick another font or use `--json`. 
 
 ## Other tracebacks
 
-zquota turns the failures it expects into `ERROR:` lines. A connection that breaks while the answer
-is being read can still end in a Python traceback. Run it again, and if the same traceback keeps
-coming back, [open an issue](https://github.com/netspeedy/zquota/issues) with it.
+zquota turns the failures it expects into `ERROR:` lines, so a Python traceback means something it
+didn't expect. Run it again, and if the same traceback keeps coming back,
+[open an issue](https://github.com/netspeedy/zquota/issues) with it.
