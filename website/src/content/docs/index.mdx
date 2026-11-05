@@ -1,0 +1,20 @@
+---
+title: No quota guesswork. Exact reset times.
+description: zquota shows how much of your Z.ai quota you've used and exactly when each window resets, as a terminal view or as JSON for scripts.
+template: splash
+tableOfContents: false
+editUrl: false
+prev: false
+next: false
+---
+
+import HomeTop from "../../components/HomeTop.astro";
+import DocsDirectory from "../../components/DocsDirectory.astro";
+
+<HomeTop>
+zquota asks Z.ai for your plan's quota and shows how much of each window you've used and the exact
+time it resets, in your own timezone. The default view is for people. `--compact`, `--json` and
+`--jsonl` are for scripts, and `--threshold` exits with code 2 when a window crosses the line you set.
+</HomeTop>
+
+<DocsDirectory />

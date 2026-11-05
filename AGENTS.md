@@ -8,21 +8,49 @@ windows.
 - Keep the runtime CLI in `zquota.py`.
 - Keep unit tests in `tests/` and prefer stdlib `unittest` unless the project
   deliberately adopts another test runner.
-- Keep user-facing docs in `README.md` and `docs/`.
+- Keep user-facing docs in the docs site (`website/`) and `README.md`. The files
+  in `docs/` other than `release.md` are pointers kept so old links still land
+  somewhere; don't add guides there.
 - Keep Debian packaging metadata in `debian/`.
 - Keep Homebrew formula in `homebrew/`.
 - Keep release helper scripts in `scripts/`.
 - Keep the README hero generator in `scripts/readme/`. `make readme-hero` generates
-  `assets/zquota-readme-hero.svg` and the social cards with it (`website/public/og-image.*`
-  and `assets/zquota-social-card.png`); edit the script, not the generated files.
-  `netspeedy/homebrew-zquota` carries a copy of the script and the same SVG, so
-  copy hero changes across.
+  `assets/zquota-readme-hero.svg`, the social cards (`website/public/og-image.*`
+  and `assets/zquota-social-card.png`) and the docs site's mark and icons
+  (`website/src/assets/mark.svg`, and `favicon.svg`, `favicon.ico` and
+  `apple-touch-icon.png` in `website/public`); edit the script, not the generated
+  files. `netspeedy/homebrew-zquota` carries a copy of the script and the same
+  SVG, so copy generator changes across.
 - Keep GitHub Actions, labels, Dependabot, and release-drafter metadata under
   `.github/`.
-- Keep the GitHub Pages landing site under `website/`, not under `.github/`:
-  Dependabot stopped being able to open npm pull requests for manifests under
-  `.github/` in June 2026 (its create-PR call is rejected as "invalid or
-  unauthorized changes").
+- Treat `website/` as a first-party release surface, not a throwaway demo. It
+  is the zquota documentation, built with Astro and Starlight, and the front of
+  the signed APT repository, which shares its Pages root. The pages are Markdown
+  and MDX in `website/src/content/docs`.
+- Each sidebar group has its own colour and icon, and each header tab owns some
+  of the groups and shows only those in its sidebar. Both are in
+  `website/src/lib/sections.ts`, matched to the sidebar in
+  `website/astro.config.mjs` by label, so adding or renaming a group means
+  updating `sections` and `tabs` there.
+- The site's components and styles are shared with the other netspeedy docs
+  sites, so their classes, custom properties and elements use the neutral `ns-`
+  prefix and they don't name zquota. s3ctl's site is the standard, so carry
+  design changes over from there rather than diverging. What's particular to
+  zquota (its name, description, links, footer columns and the home page's
+  directory line) lives in `website/src/lib/site.ts`, and the pages written for
+  it are `HomeTop.astro`, `InstallTabs.astro` and `src/pages/404.astro`,
+  alongside the content, `astro.config.mjs`, `src/lib/sections.ts` and the
+  palette and mark colours in `theme.css`. Keep it that way, so a change to a
+  shared file can be copied between the sites as it is.
+- The docs are versioned by release line. Only the latest line lives in
+  `website/src/content/docs`; never copy pages into per-version folders. Keep
+  page links root-relative (`/zquota/...`), so an archived build of a line can
+  rewrite them into its own path. Links to the APT files (`dists/`, `pool/`, the
+  keyring and its fingerprint) are absolute URLs, because they're published
+  beside the build rather than in it.
+- Keep the website under `website/`, not under `.github/`: Dependabot stopped
+  being able to open npm pull requests for manifests under `.github/` in June
+  2026 (its create-PR call is rejected as "invalid or unauthorized changes").
 - Keep root-level files for build, packaging, license, editor, and repository
   metadata only.
 - Do not add GitLab-specific CI, release, or repository metadata to this GitHub
@@ -59,12 +87,29 @@ windows.
   ```bash
   make version-check
   ```
-- Check and build the GitHub Pages site when touching website assets:
+- Build the docs site, then validate the built output (pages, search index,
+  icons, share card and every internal link). The check reads `website/dist`,
+  so it always runs after the build:
   ```bash
   make website-install
-  make website-check
   make website-build
+  make website-check
   ```
+- Drive the site in headless Chrome: the theme controls, the header and its
+  tabs, the version menu and an archived line. It builds its own latest and
+  archived copies under `website/.test/`, so it needs no release metadata:
+  ```bash
+  make website-test
+  ```
+- Screenshot the built site in both themes at desktop and phone widths:
+  ```bash
+  make website-capture
+  ```
+- Serve the site with live reload while editing pages with `make website-dev`.
+  When Astro detects an agent it starts the server in the background and
+  returns, so stop it afterwards with `cd website && npx astro dev stop`.
+  `website/README.md` summarises the folder, its targets and how it's
+  published; keep it in step when any of those change.
 - Build the Debian package when a Debian build environment is available:
   ```bash
   make package
@@ -129,14 +174,25 @@ windows.
 
 ## Documentation Sync
 
-- Update `README.md` and `docs/usage.md` when CLI flags, output formats, exit
-  codes, environment variables, or installation behavior change.
+- When CLI flags, output formats or fields, exit codes, environment variables,
+  error messages or installation behavior change, update the matching site pages
+  in `website/src/content/docs` in the same change, and `README.md` and the man
+  page (`debian/zquota.1`) where they cover the same thing.
+  `test_cli_reference_covers_every_flag` in `tests/test_docs.py` fails when a
+  flag is added or removed without updating
+  `website/src/content/docs/reference/cli.mdx`.
+- The sample output on the site's home page and in the guides is real zquota
+  output for a sample response in the shape `tests/test_zquota.py` uses. When an
+  output format changes, save such a response as JSON, run zquota against it
+  with `--api-url file:///path/to/response.json` (no network needed) and paste
+  what it prints, rather than editing the samples by hand.
 - Update `docs/release.md` when release workflows, tag rules, or published
   artifacts change.
-- Update the GitHub Pages website when installation, artifact, or APT repository
-  behavior changes.
-- Update `website/README.md` when the `make website-*` targets, the site's build
-  inputs, or the workflows that publish it change.
+- Update the site's Installation page when installation, artifact, or APT
+  repository behavior changes.
+- Update `website/README.md` and the Website section of `docs/release.md` when
+  the `make website-*` targets, the site's build inputs, or the workflows that
+  publish it change.
 - Keep examples realistic, copyable, and free of real secrets.
 - Public docs should not reference private machine paths or internal-only
   repository locations.
@@ -190,7 +246,9 @@ make test
 make smoke
 ```
 
-If packaging, release metadata, or website assets change, also run script syntax
-checks, `make version-check`, and `make build` when the local Python environment
-has the build tooling installed. Run `make package` and `make website-build`
-when the required Debian and Node.js tooling is available.
+If packaging or release metadata change, also run script syntax checks,
+`make version-check`, and `make build` when the local Python environment has the
+build tooling installed, and `make package` when a Debian build environment is
+available. If the website changes, run `make website-build`, `make website-check`
+and `make website-test`, and look at `make website-capture` output for layout
+changes.

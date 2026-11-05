@@ -1,19 +1,22 @@
 # zquota Documentation
 
-`zquota` is intentionally small: one Python CLI, no runtime dependencies, and output that makes Z.ai reset windows obvious. Public releases include GitHub assets, a Debian package, and a signed APT repository.
+The user documentation is the [zquota docs site](https://netspeedy.github.io/zquota/), built from
+[`website/`](../website/README.md). [usage.md](usage.md) is a pointer to it, kept so old links
+still land somewhere, and [release.md](release.md) is for maintainers.
 
-Use these docs for the longer-form details that do not need to live in the main README.
+## On the site
 
-## Guides
+| Page | Use it for |
+| --- | --- |
+| [Quickstart](https://netspeedy.github.io/zquota/quickstart/) | Installing, setting the key and reading a first quota view |
+| [Installation](https://netspeedy.github.io/zquota/installation/) | Homebrew, the APT repository, a single Debian package, pip and the single file |
+| [Quota windows](https://netspeedy.github.io/zquota/windows/) | The windows Z.ai reports, their reset times, and the usage figures and bars |
+| [Guides](https://netspeedy.github.io/zquota/guides/configuration/) | Configuration, output formats, watch mode, scripts and alerts, and troubleshooting |
+| [Reference](https://netspeedy.github.io/zquota/reference/cli/) | Flags, environment variables, JSON fields and exit codes |
 
-- [Usage Guide](usage.md) - APT installation, configuration, examples, output formats, and troubleshooting
-- [Release Flow](release.md) - GitHub release, Debian package, APT repository, and Pages automation
+## For maintainers
 
-## Design Goals
-
-- Show the exact rolling five-hour reset time without needing to infer it from a chart.
-- Keep normal terminal output readable for humans.
-- Keep JSON output stable enough for scripts and monitoring.
-- Avoid runtime dependencies so the tool can be dropped onto almost any machine with Python 3.12+.
-- Make release validation repeatable through GitHub Actions.
-- Keep committed source versions aligned with the stable release tags.
+| Document | Purpose |
+| --- | --- |
+| [release.md](release.md) | Validation, release candidates, stable promotion, published assets and the website |
+| [../AGENTS.md](../AGENTS.md) | Repository conventions and validation |

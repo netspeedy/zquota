@@ -1,0 +1,91 @@
+---
+title: CLI
+description: Every zquota flag, with its default.
+---
+
+import FlagTable from "../../../components/FlagTable.astro";
+
+{/*
+  tests/test_docs.py fails when a flag is missing here, when this page lists one zquota doesn't
+  take, or when a short form is paired with the wrong long one, so add new flags to the right
+  group below when you add them to build_parser().
+*/}
+
+export const formats = [
+  { short: "-j", flag: "--json", description: "Print one pretty-printed JSON object with every field for every window, and `fetched_at`." },
+  { flag: "--jsonl", description: "Print one compact JSON object per window, one per line, with the shorter JSON Lines field names." },
+  { short: "-c", flag: "--compact", description: "Print the plan, then one line per window: its short name, a 10-cell bar, the percentage used, what's left and the countdown to the reset." },
+  { flag: "--raw", description: "Print Z.ai's answer as it came, pretty-printed, without checking or converting it. Can't be combined with `--threshold`." },
+];
+
+export const display = [
+  { short: "-z", flag: "--timezone", arg: "TIMEZONE", default: "Europe/London", description: "The IANA timezone for `Resets at` and `resets_at`, such as `America/New_York`. Without it, `ZAI_TIMEZONE`, then `Europe/London`. An unknown name gets a warning and falls back to `Europe/London`." },
+  { flag: "--no-color", description: "Don't colour the default and compact views. Output that isn't a terminal is never coloured." },
+];
+
+export const connection = [
+  { flag: "--api-key", arg: "API_KEY", description: "The Z.ai API key. Without it, `ZAI_API_KEY`. One of the two is required; prefer the variable, because a key on the command line ends up in your shell history." },
+  { flag: "--api-url", arg: "API_URL", default: "Z.ai's", description: "The quota endpoint. Without it, `ZAI_API_URL`, then Z.ai's endpoint, below. A `file://` URL reads a saved response instead." },
+];
+
+export const running = [
+  { short: "-w", flag: "--watch", arg: "SECONDS", description: "Clear the screen and refresh every SECONDS seconds, a whole number from 1, until Ctrl-C, a failed request or a `--threshold` breach." },
+  { short: "-t", flag: "--threshold", arg: "PERCENT", description: "Exit with code 2 after printing if any window's percentage used is at or above PERCENT, a number from 0 to 100." },
+];
+
+export const info = [
+  { flag: "--version", description: "Print `zquota` and the version, then exit." },
+  { short: "-h", flag: "--help", description: "Print the usage and every flag, then exit." },
+];
+
+## Usage
+
+```bash
+zquota [-j | --jsonl | -c | --raw] [--no-color] [-z TIMEZONE]
+       [--api-key API_KEY] [--api-url API_URL] [-w SECONDS] [-t PERCENT]
+zquota --version
+```
+
+zquota takes no arguments other than flags. With none it prints the default view once and exits.
+A flag's value can follow it after a space or an equals sign, `--watch 30` or `--watch=30`, and a
+short form can take its value straight after it, as in `-w30`. Long flags can be shortened to any
+unambiguous prefix, such as `--thresh 80`, though scripts are clearer with the full name.
+
+## Output format
+
+<FlagTable flags={formats} />
+
+Give at most one. With none, zquota prints the default view.
+[Output formats](/zquota/guides/output-formats/) shows each one.
+
+## Display
+
+<FlagTable flags={display} />
+
+## API key and endpoint
+
+<FlagTable flags={connection} />
+
+Z.ai's endpoint is `https://api.z.ai/api/monitor/usage/quota/limit`. zquota sends it one `GET` per
+run, or one per refresh with `--watch`, with the key as a bearer token.
+
+[Environment variables](/zquota/reference/environment/) covers the variables these flags override.
+
+## Watch and threshold
+
+<FlagTable flags={running} />
+
+zquota checks these values before it reads the API key or makes a request. `--watch` below 1,
+`--threshold` outside 0 to 100, or `--threshold` with `--raw` each stop it with an error and exit
+code 1. A value that isn't a number, such as `--watch soon`, is a usage error with exit code 2.
+
+## Information
+
+<FlagTable flags={info} />
+
+`--version` prints a line such as `zquota 0.1.3`, the version without a `v`. Both exit with code 0
+without reading the API key.
+
+An unknown flag, two output formats at once or a value of the wrong type prints the usage line and
+the problem to standard error and exits with code 2. [Exit codes](/zquota/reference/exit-codes/)
+has the rest.

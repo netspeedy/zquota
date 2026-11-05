@@ -1,0 +1,78 @@
+---
+title: Quota windows
+description: The windows Z.ai's quota API reports, how zquota recognises and names each one, and what it reads from them.
+---
+
+import NextSteps from "../../../components/NextSteps.astro";
+
+Z.ai meters a plan in more than one window at once. Its quota endpoint answers with the plan's
+level and a list of limits, and each limit is one window with its own usage and its own reset
+time. zquota prints every window in that list, in the order Z.ai sends them, without sorting or
+filtering.
+
+## The windows zquota knows
+
+zquota recognises a window by three of its fields, `type`, `unit` and `number`, and gives it a
+long name for the default view and a short one for `--compact`, `--jsonl` and the `name_compact`
+JSON field:
+
+| `type` | `unit` | `number` | Default view | Short name |
+| --- | --- | --- | --- | --- |
+| `TOKENS_LIMIT` | `3` | `5` | 5-Hour Rolling Token Quota | `5h-rolling` |
+| `TOKENS_LIMIT` | `6` | `1` | Weekly Token Quota | `weekly` |
+| `TIME_LIMIT` | any | any | Tool/Search Time Quota | `tool/search` |
+| anything else | | | Unknown Quota (type=…, unit=…, n=…) | `unknown` |
+
+An unrecognised window isn't dropped. It's printed like the others, titled with the three values
+Z.ai sent, such as `Unknown Quota (type=TOKENS_LIMIT, unit=4, n=1)`, so if a new window turns up,
+that title says what to report. Its `type` is in the JSON output as well.
+
+Which windows you see depends on your plan and on what Z.ai returns for it; zquota doesn't ask for
+particular ones.
+
+## What it reads from each window
+
+| Field in the response | What zquota does with it |
+| --- | --- |
+| `percentage` | The share of the window you've used. It draws the bar and checks `--threshold` against it. |
+| `usage` | The window's limit, shown as `Limit`. |
+| `currentValue` | What you've used, shown as `Used`. |
+| `remaining` | What's left, shown as `Remaining`. |
+| `nextResetTime` | When the window resets, in milliseconds since 1970 UTC. |
+| `usageDetails` | An optional list of `modelCode` and `usage` pairs, shown under `Details`. |
+
+Any of these can be missing. A value that isn't a number is treated as missing too: its line is
+left out of the default view, it's `-` in the compact view and `null` in JSON. A window with no
+`percentage` has no bar (the compact view shows dashes in its place) and never trips
+`--threshold`.
+
+The plan comes from the response's `level` field and is printed as `Z.ai plan: pro`. If the
+response has no level, zquota prints `unknown`.
+
+## The request
+
+Every run makes one request, and `--watch` makes one per refresh. It's a `GET` to
+`https://api.z.ai/api/monitor/usage/quota/limit`, or the endpoint you set with `--api-url` or
+`ZAI_API_URL`, with three headers:
+
+```text
+Accept: application/json
+Authorization: Bearer <your API key>
+User-Agent: zquota/<version>
+```
+
+It gives up if connecting or reading stalls for 20 seconds. zquota then checks that the answer is a
+JSON object with `success` set to true, a `data` object and a `limits` list inside it, and stops
+with exit code 1 if any of that is missing. Entries in `limits` that aren't JSON objects are
+skipped. `--raw` prints the answer as soon as it's known to be a JSON object, before the other
+checks, which makes it the way to see exactly what came back. [Troubleshooting](/zquota/guides/troubleshooting/) lists every error.
+
+Reset times come from Z.ai. zquota doesn't work out when a rolling window will reset; it converts
+the `nextResetTime` Z.ai sends into your timezone and counts down to it.
+
+<NextSteps
+  links={[
+    { title: "Reset times", href: "/zquota/windows/reset-times/", description: "The countdown, the local time, UTC and epoch milliseconds, and timezones." },
+    { title: "Usage and limits", href: "/zquota/windows/usage/", description: "The bar, its colours, the rounded numbers and per-model details." },
+  ]}
+/>

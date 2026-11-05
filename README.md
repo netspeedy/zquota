@@ -6,7 +6,7 @@
   <a href="https://github.com/netspeedy/zquota/actions/workflows/build-and-validate.yml"><img src="https://img.shields.io/github/actions/workflow/status/netspeedy/zquota/build-and-validate.yml?branch=main&style=flat-square&label=validate" alt="Validate"></a>
   <a href="https://github.com/netspeedy/zquota/releases"><img src="https://img.shields.io/github/v/release/netspeedy/zquota?sort=semver&style=flat-square" alt="Release"></a>
   <a href="https://github.com/netspeedy/homebrew-zquota"><img src="https://img.shields.io/badge/Homebrew-tap-FBB040?style=flat-square&logo=homebrew&logoColor=black" alt="Homebrew tap"></a>
-  <a href="https://netspeedy.github.io/zquota/"><img src="https://img.shields.io/badge/APT-signed%20repository-00897B?style=flat-square" alt="APT Repository"></a>
+  <a href="https://netspeedy.github.io/zquota/installation/#signed-apt-repository"><img src="https://img.shields.io/badge/APT-signed%20repository-00897B?style=flat-square" alt="APT Repository"></a>
   <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.12%2B-3776AB.svg?style=flat-square&logo=python&logoColor=white" alt="Python"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-2EA043.svg?style=flat-square" alt="License"></a>
   <a href="zquota.py"><img src="https://img.shields.io/badge/runtime%20deps-zero-10B981.svg?style=flat-square" alt="Stdlib Only"></a>
@@ -26,7 +26,7 @@ keeps the view live, and `--threshold` exits with code 2 when a window crosses t
 line you set, so cron can tell quota pressure apart from a bad key or a network
 failure.
 
-**Quick links:** [Install](#install) · [Try it](#try-it) · [Usage guide](docs/usage.md) · [Releases](https://github.com/netspeedy/zquota/releases) · [Website and APT repository](https://netspeedy.github.io/zquota/)
+**Quick links:** [Install](#install) · [Try it](#try-it) · [Docs](https://netspeedy.github.io/zquota/) · [Quota windows](https://netspeedy.github.io/zquota/windows/) · [CLI reference](https://netspeedy.github.io/zquota/reference/cli/) · [Releases](https://github.com/netspeedy/zquota/releases)
 
 ## Install
 
@@ -112,8 +112,12 @@ zquota --watch 30                # live, refresh every 30s
 zquota --threshold 80            # exit 2 if any quota is at/above 80%
 ```
 
-[docs/usage.md](docs/usage.md) covers authentication, timezones, the JSON fields, a
-cron example and troubleshooting.
+The [docs](https://netspeedy.github.io/zquota/) cover
+[configuration](https://netspeedy.github.io/zquota/guides/configuration/), timezones and
+[reset times](https://netspeedy.github.io/zquota/windows/reset-times/), the
+[JSON fields](https://netspeedy.github.io/zquota/reference/json-output/), a
+[cron example](https://netspeedy.github.io/zquota/guides/scripting/) and
+[troubleshooting](https://netspeedy.github.io/zquota/guides/troubleshooting/).
 
 ## Configuration
 
@@ -161,10 +165,13 @@ zquota --json | jq '.quotas[] | {quota: .name_compact, local: .resets_at, utc: .
 |---:|---|
 | `0` | Success |
 | `1` | Runtime or input error |
-| `2` | Threshold exceeded when `--threshold` is set |
+| `2` | Threshold exceeded when `--threshold` is set, or a command line that doesn't parse |
 
 Quota pressure gets its own code so that a script can tell it apart from a broken
-API key, a network failure or an invalid response.
+API key, a network failure or an invalid response. Python's argument parser also
+exits with 2 for an unknown flag or two output formats at once, after printing
+`usage:` to standard error, so check a new command by hand before a script relies
+on the 2.
 
 ## Development
 
@@ -187,14 +194,17 @@ make version-check
 ```
 
 `make fmt` formats with black and `make build` builds the Python package. The
-GitHub Pages site is built from `website/`, and its [README](website/README.md)
-covers the `make website-*` targets and how the site is published. Releases are
-automated; [docs/release.md](docs/release.md) describes the flow.
+[docs site](https://netspeedy.github.io/zquota/) is built with Astro and Starlight
+from `website/`, and its [README](website/README.md) covers the `make website-*`
+targets and how the site is published. If you add, rename or remove a flag, update
+the CLI reference page in the same change: `tests/test_docs.py` fails until the
+page matches. Releases are automated; [docs/release.md](docs/release.md) describes
+the flow.
 
 The banner at the top of this page and the social cards are generated. Edit the
 copy, layout or timing in `scripts/readme/build_readme_hero.py` and run `make
-readme-hero`. That rebuilds `assets/zquota-readme-hero.svg`, the website's
-`website/public/og-image.png` and `assets/zquota-social-card.png`, which is the
+readme-hero`. That rebuilds `assets/zquota-readme-hero.svg`, the website's share
+card, mark and icons, and `assets/zquota-social-card.png`, which is the
 image for GitHub's social preview and is uploaded by hand in the repository
 settings. It runs the script with `uv`, which installs the pinned fontTools it
 subsets the fonts with, and renders the cards with headless Chrome or Chromium. The
