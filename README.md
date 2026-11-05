@@ -186,9 +186,10 @@ make smoke
 make version-check
 ```
 
-`make fmt` formats with black, `make build` builds the Python package and
-`make website-build` builds the GitHub Pages site. Releases are automated;
-[docs/release.md](docs/release.md) describes the flow.
+`make fmt` formats with black and `make build` builds the Python package. The
+GitHub Pages site is built from `website/`, and its [README](website/README.md)
+covers the `make website-*` targets and how the site is published. Releases are
+automated; [docs/release.md](docs/release.md) describes the flow.
 
 The banner at the top of this page and the social cards are generated. Edit the
 copy, layout or timing in `scripts/readme/build_readme_hero.py` and run `make

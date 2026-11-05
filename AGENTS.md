@@ -59,8 +59,10 @@ windows.
   ```bash
   make version-check
   ```
-- Build the GitHub Pages site when touching website assets:
+- Check and build the GitHub Pages site when touching website assets:
   ```bash
+  make website-install
+  make website-check
   make website-build
   ```
 - Build the Debian package when a Debian build environment is available:
@@ -133,6 +135,8 @@ windows.
   artifacts change.
 - Update the GitHub Pages website when installation, artifact, or APT repository
   behavior changes.
+- Update `website/README.md` when the `make website-*` targets, the site's build
+  inputs, or the workflows that publish it change.
 - Keep examples realistic, copyable, and free of real secrets.
 - Public docs should not reference private machine paths or internal-only
   repository locations.
