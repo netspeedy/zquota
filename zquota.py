@@ -8,6 +8,7 @@ MIT License - see https://github.com/netspeedy/zquota/blob/main/LICENSE
 from __future__ import annotations
 
 import argparse
+import http.client
 import json
 import os
 import sys
@@ -381,7 +382,11 @@ def print_error(message: str) -> None:
 
 def print_http_error(http_error: urllib.error.HTTPError) -> None:
     """Print an HTTP error with the response body when available."""
-    body = http_error.read().decode("utf-8", errors="replace").strip()
+    try:
+        body = http_error.read().decode("utf-8", errors="replace").strip()
+    except (OSError, http.client.HTTPException):
+        # The status is the error; a body that times out or breaks off is left out.
+        body = ""
     print_error(f"HTTP {http_error.code}: {http_error.reason}")
     if body:
         print(body, file=sys.stderr)
@@ -472,6 +477,14 @@ def _handle_fetch_error(
         print_http_error(err)
     elif isinstance(err, urllib.error.URLError):
         print_error(f"request failed: {err.reason}")
+    elif isinstance(err, OSError):
+        # urlopen() wraps only the errors from sending the request in URLError. A timeout or a
+        # dropped connection while waiting for the answer or reading it arrives as itself.
+        print_error(f"request failed: {err}")
+    elif isinstance(err, http.client.IncompleteRead):
+        print_error(f"request failed: the response broke off after {len(err.partial)} bytes")
+    elif isinstance(err, http.client.HTTPException):
+        print_error(f"request failed: invalid HTTP response: {err}")
     elif isinstance(err, json.JSONDecodeError):
         print_error(f"response was not valid JSON: {err}")
     elif isinstance(err, ValueError):
@@ -502,6 +515,8 @@ def run_once(
     except (
         urllib.error.HTTPError,
         urllib.error.URLError,
+        OSError,
+        http.client.HTTPException,
         json.JSONDecodeError,
         ValueError,
     ) as err:

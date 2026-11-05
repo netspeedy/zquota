@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+import http.client
 import json
 import unittest
+import urllib.error
 from datetime import datetime, timezone
-from io import StringIO
+from email.message import Message
+from io import BytesIO, StringIO
 from unittest.mock import patch
 
 import zquota
@@ -139,6 +142,91 @@ class TimezoneTests(unittest.TestCase):
                 self.assertEqual(
                     stderr, f"WARNING: unknown timezone {name!r}; using Europe/London\n"
                 )
+
+
+class BrokenBody(BytesIO):
+    """A response body whose read() fails the way a dropped or stalled connection does."""
+
+    def __init__(self, error: BaseException) -> None:
+        super().__init__()
+        self.error = error
+
+    def read(self, *args: object) -> bytes:
+        raise self.error
+
+
+class FakeResponse:
+    """Just enough of urlopen()'s response for fetch_json(): a context manager with read()."""
+
+    def __init__(self, error: BaseException) -> None:
+        self.body = BrokenBody(error)
+
+    def __enter__(self) -> BrokenBody:
+        return self.body
+
+    def __exit__(self, *exc_info: object) -> None:
+        return None
+
+
+class ReadErrorTests(unittest.TestCase):
+    def run_failing(self, urlopen_effect: object) -> tuple[int, str]:
+        """Run main() with urlopen() patched to urlopen_effect; return (code, stderr)."""
+        stderr = StringIO()
+        with (
+            patch("urllib.request.urlopen", side_effect=urlopen_effect),
+            patch("sys.stdout", new=StringIO()),
+            patch("sys.stderr", new=stderr),
+        ):
+            code = zquota.main(["--json", "--api-key", "test"])
+        return code, stderr.getvalue()
+
+    def test_failures_while_reading_the_response_are_errors(self) -> None:
+        cases = {
+            "timeout": (TimeoutError("timed out"), "ERROR: request failed: timed out\n"),
+            "reset": (
+                ConnectionResetError(54, "Connection reset by peer"),
+                "ERROR: request failed: [Errno 54] Connection reset by peer\n",
+            ),
+            "cut off": (
+                http.client.IncompleteRead(b'{"success": tr', 486),
+                "ERROR: request failed: the response broke off after 14 bytes\n",
+            ),
+        }
+        for name, (error, message) in cases.items():
+            with self.subTest(name):
+                code, stderr = self.run_failing([FakeResponse(error)])
+
+                self.assertEqual(code, 1)
+                self.assertEqual(stderr, message)
+
+    def test_failures_while_waiting_for_the_answer_are_errors(self) -> None:
+        cases = {
+            "timeout": (TimeoutError("timed out"), "ERROR: request failed: timed out\n"),
+            "closed": (
+                http.client.RemoteDisconnected("Remote end closed connection without response"),
+                "ERROR: request failed: Remote end closed connection without response\n",
+            ),
+            "not http": (
+                http.client.BadStatusLine("NOT HTTP"),
+                "ERROR: request failed: invalid HTTP response: NOT HTTP\n",
+            ),
+        }
+        for name, (error, message) in cases.items():
+            with self.subTest(name):
+                code, stderr = self.run_failing(error)
+
+                self.assertEqual(code, 1)
+                self.assertEqual(stderr, message)
+
+    def test_http_error_whose_body_times_out_still_reports_the_status(self) -> None:
+        error = urllib.error.HTTPError(
+            zquota.API_URL, 500, "Internal Server Error", Message(), BrokenBody(TimeoutError())
+        )
+
+        code, stderr = self.run_failing(error)
+
+        self.assertEqual(code, 1)
+        self.assertEqual(stderr, "ERROR: HTTP 500: Internal Server Error\n")
 
 
 class InterruptTests(unittest.TestCase):
