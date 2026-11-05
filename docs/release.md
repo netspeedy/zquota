@@ -1,6 +1,6 @@
 # Release Flow
 
-`zquota` uses the same public-release shape as the other maintained repos: validation first, an automated release candidate, manual promotion to stable, GitHub release assets, and a signed APT repository on GitHub Pages.
+`zquota` uses the same public-release shape as the other maintained repos: validation first, an automated release candidate that's promoted to stable automatically once its publish path passes, GitHub release assets, and a signed APT repository on GitHub Pages.
 
 ## Validation
 
@@ -53,7 +53,7 @@ Release candidate tags publish prerelease assets through the `Release Assets` wo
 
 ## Stable Releases
 
-Use the `Promote Release Candidate` workflow to promote a release candidate tag such as `v1.0.0-rc.1` to a stable tag such as `v1.0.0`.
+Once a release candidate's assets publish, the same `Automated Release Candidate` run tags that commit as the stable release, for example `v1.0.0-rc.1` becomes `v1.0.0`, and waits for the stable `Release Assets` and `Publish Signed Debian Repository` runs. The stable tag is pushed with `RELEASE_AUTOMATION_TOKEN`, because a tag pushed with `GITHUB_TOKEN` wouldn't start them. The `Promote Release Candidate` workflow is only for finishing a run that failed partway.
 
 Stable tags publish a GitHub release marked as latest and publish the signed APT repository and landing site to GitHub Pages.
 
