@@ -35,15 +35,12 @@ if Z.ai is slow.
 
 | What happens | What zquota does | Exit code |
 | --- | --- | --- |
-| You press Ctrl-C while it's waiting | prints a newline and stops | 0 |
+| You press Ctrl-C, while it's waiting or during a refresh | prints a newline and stops | 0 |
 | A request fails | prints the error to standard error and stops | 1 |
 | `--threshold` is set and a window reaches it | leaves that view on screen and stops | 2 |
 
 A failed refresh ends the watch rather than retrying, so a short network outage stops it and
 you'll need to start it again.
-
-Ctrl-C while a request is in flight isn't handled: Python prints a traceback and the exit code is
-130.
 
 ## Watching until a threshold
 

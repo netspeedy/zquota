@@ -57,12 +57,15 @@ Default display timezone.
 .SH EXIT STATUS
 .TP
 .B 0
-Success.
+Success, or stopped with Ctrl-C during \-\-watch.
 .TP
 .B 1
 Runtime or input error.
 .TP
 .B 2
 Threshold exceeded, or the command line could not be parsed.
+.TP
+.B 130
+Interrupted with Ctrl-C, other than during \-\-watch.
 .SH AUTHOR
 Simon Oakes

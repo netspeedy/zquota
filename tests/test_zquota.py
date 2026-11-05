@@ -141,5 +141,46 @@ class TimezoneTests(unittest.TestCase):
                 )
 
 
+class InterruptTests(unittest.TestCase):
+    def run_interrupted(self, *argv: str) -> tuple[int, str, str]:
+        """Run main() with Ctrl-C pressed during the request; return (code, stdout, stderr)."""
+        stdout, stderr = StringIO(), StringIO()
+        with (
+            patch("zquota.fetch_json", side_effect=KeyboardInterrupt),
+            patch("sys.stdout", new=stdout),
+            patch("sys.stderr", new=stderr),
+        ):
+            try:
+                code = zquota.main(["--api-key", "test", *argv])
+            except KeyboardInterrupt:
+                self.fail("Ctrl-C escaped main() and would print a traceback")
+        return code, stdout.getvalue(), stderr.getvalue()
+
+    def test_ctrl_c_during_a_request_exits_130(self) -> None:
+        code, stdout, stderr = self.run_interrupted("--json")
+
+        self.assertEqual(code, 130)
+        self.assertEqual(stdout, "")
+        self.assertEqual(stderr, "\n")
+
+    def test_ctrl_c_during_a_watch_refresh_stops_it_cleanly(self) -> None:
+        code, _, stderr = self.run_interrupted("--watch", "30", "--no-color")
+
+        self.assertEqual(code, 0)
+        self.assertEqual(stderr, "")
+
+    def test_ctrl_c_while_watch_waits_stops_it_cleanly(self) -> None:
+        stdout = StringIO()
+        with (
+            patch("zquota.fetch_json", return_value=sample_payload()),
+            patch("time.sleep", side_effect=KeyboardInterrupt),
+            patch("sys.stdout", new=stdout),
+        ):
+            code = zquota.main(["--api-key", "test", "--watch", "30", "--compact", "--no-color"])
+
+        self.assertEqual(code, 0)
+        self.assertTrue(stdout.getvalue().endswith("\n\n"))
+
+
 if __name__ == "__main__":
     unittest.main()

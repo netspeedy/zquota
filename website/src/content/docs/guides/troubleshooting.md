@@ -110,6 +110,5 @@ boxes, your terminal font doesn't have them; pick another font or use `--json`. 
 ## Other tracebacks
 
 zquota turns the failures it expects into `ERROR:` lines. A connection that breaks while the answer
-is being read, or Ctrl-C while a request is in flight, can still end in a Python traceback. Run it
-again, and if the same traceback keeps coming back, [open an issue](https://github.com/netspeedy/zquota/issues)
-with it.
+is being read can still end in a Python traceback. Run it again, and if the same traceback keeps
+coming back, [open an issue](https://github.com/netspeedy/zquota/issues) with it.
