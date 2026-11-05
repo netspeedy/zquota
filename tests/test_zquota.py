@@ -138,6 +138,17 @@ class MainTests(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertEqual(json.loads(stdout.getvalue()), sample_payload())
 
+    def test_empty_api_url_variable_counts_as_unset(self) -> None:
+        with (
+            patch.dict("os.environ", {"ZAI_API_URL": ""}),
+            patch("zquota.fetch_json", return_value=sample_payload()) as fetch,
+            patch("sys.stdout", new=StringIO()),
+        ):
+            code = zquota.main(["--json", "--api-key", "test"])
+
+        self.assertEqual(code, 0)
+        fetch.assert_called_once_with("test", zquota.API_URL)
+
     def test_raw_output_cannot_be_combined_with_threshold(self) -> None:
         stderr = StringIO()
 

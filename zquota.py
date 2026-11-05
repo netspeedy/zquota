@@ -526,7 +526,8 @@ def run_once(
         print("Set it with: export ZAI_API_KEY='your-api-key'", file=sys.stderr)
         return 1, None, None, None
 
-    api_url = args.api_url or os.getenv("ZAI_API_URL", API_URL)
+    # An empty ZAI_API_URL counts as unset, like an empty ZAI_TIMEZONE or --api-url.
+    api_url = args.api_url or os.getenv("ZAI_API_URL") or API_URL
 
     try:
         payload = fetch_json(api_key, api_url)
