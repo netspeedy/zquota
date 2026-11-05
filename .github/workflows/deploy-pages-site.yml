@@ -115,6 +115,22 @@ jobs:
             echo "stable_sha=${stable_sha}"
           } >> "$GITHUB_OUTPUT"
 
+      # Each older line whose last release carries a docs archive (Release Assets attaches one when
+      # the next line ships) is published beside the latest, under /<repo>/vX.Y/.
+      - name: Download archived docs
+        if: steps.published.outputs.published == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          LATEST_TAG: ${{ steps.website_metadata.outputs.stable_tag }}
+        run: |
+          set -euo pipefail
+
+          bash scripts/download-docs-archives.sh "${RUNNER_TEMP}/docs-archives" "${LATEST_TAG}" \
+            > "${RUNNER_TEMP}/docs-versions.json"
+          printf 'Archived docs published: %s\n' \
+            "$(jq -r 'map(.version) | join(", ") | if . == "" then "none" else . end' "${RUNNER_TEMP}/docs-versions.json")" \
+            >> "${GITHUB_STEP_SUMMARY}"
+
       - name: Set up Node.js
         if: steps.published.outputs.published == 'true'
         uses: actions/setup-node@v7
@@ -146,6 +162,7 @@ jobs:
             --arg release_url "${release_url}" \
             --arg commit "${STABLE_SHA}" \
             --arg fingerprint "${fingerprint}" \
+            --slurpfile docs_versions "${RUNNER_TEMP}/docs-versions.json" \
             '{
               site_url: $site_url,
               latest_release: {
@@ -153,6 +170,7 @@ jobs:
                 html_url: $release_url
               },
               release_commit: $commit,
+              docs_versions: $docs_versions[0],
               apt_repository: {
                 available: true,
                 url: $site_url,
@@ -165,6 +183,11 @@ jobs:
 
           npm ci --prefix "${WEBSITE_DIR}"
           SITE_METADATA_FILE="${metadata}" make website-build WEBSITE_DIR="${WEBSITE_DIR}"
+          # The archived lines go in before the check, so it follows the version menu's links into them.
+          for archive in "${RUNNER_TEMP}"/docs-archives/*/; do
+            [ -d "${archive}" ] || continue
+            cp -a "${archive%/}" "${WEBSITE_DIR}/dist/"
+          done
           make website-check WEBSITE_DIR="${WEBSITE_DIR}"
           # The snapshot holds the previous site as well as the APT repository. Keep only the
           # repository and the metadata, so files the new site no longer has aren't left published.

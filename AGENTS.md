@@ -42,9 +42,11 @@ windows.
   palette and mark colours in `theme.css`. Keep it that way, so a change to a
   shared file can be copied between the sites as it is.
 - The docs are versioned by release line. Only the latest line lives in
-  `website/src/content/docs`; never copy pages into per-version folders. Keep
-  page links root-relative (`/zquota/...`), so an archived build of a line can
-  rewrite them into its own path. Links to the APT files (`dists/`, `pool/`, the
+  `website/src/content/docs`; never copy pages into per-version folders. When a
+  new minor ships, the release workflow rebuilds the outgoing line from git with
+  `SITE_ARCHIVE=vX.Y`, which serves it under `/zquota/vX.Y/`, and both Pages
+  workflows publish it beside the latest. Keep page links root-relative
+  (`/zquota/...`): archived builds rewrite them into their own line. Links to the APT files (`dists/`, `pool/`, the
   keyring and its fingerprint) are absolute URLs, because they're published
   beside the build rather than in it.
 - Keep the website under `website/`, not under `.github/`: Dependabot stopped

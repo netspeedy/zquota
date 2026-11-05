@@ -43,6 +43,8 @@ jobs:
         run: |
           bash -n scripts/build-apt-repository.sh
           bash -n scripts/check-version-consistency.sh
+          bash -n scripts/docs-archive-commit.sh
+          bash -n scripts/download-docs-archives.sh
           bash -n scripts/generate-release-notes.sh
           bash -n scripts/next-release.sh
           bash -n scripts/prepare-debian-changelog.sh

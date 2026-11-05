@@ -66,6 +66,10 @@ The `Release Assets` workflow attaches:
 - Debian source package files
 - `sha256sums.txt`
 
+The first stable release of a new line, such as `v0.2.0`, also attaches the
+outgoing line's docs to that line's last release as `zquota-docs-<line>.tar.gz`;
+[Versioned docs](#versioned-docs) has the details.
+
 The stable-only `Publish Signed Debian Repository` workflow publishes:
 
 - a `stable main` APT repository
@@ -137,3 +141,43 @@ is added to or removed from `build_parser()` without updating
 
 The favicon, Apple touch icon, `favicon.ico`, the mark and the share card in
 `website/` come from `make readme-hero`, along with the README banner.
+
+### Versioned docs
+
+The docs are versioned by release line. The latest line is built at the site
+root, and each older line is served under its own path, such as
+`https://netspeedy.github.io/zquota/v0.1/`. The version menu in the header lists
+them, and an older line's pages open with a notice that links to the same page
+in the latest docs.
+
+Only the latest line is kept in the repository. When the first release of a new
+line is published, such as `v0.2.0`, the Release Assets workflow finds the
+commit just before the new line started (`scripts/docs-archive-commit.sh`, which
+uses the same `feat:` and breaking-change rules as `next-release.sh`), builds the
+site from it with `SITE_ARCHIVE` set to the old line, and attaches the result to
+the old line's last release as `zquota-docs-<line>.tar.gz`. It then dispatches
+Deploy Pages Site, because the release's own Pages runs may have finished before
+the archive was attached. Both Pages workflows unpack every such archive into the
+site before `make website-check` (`scripts/download-docs-archives.sh`), list them
+in `versions.json` at the root, and archived lines read that file when they load,
+so their menus include lines released after them. A failed archive doesn't fail
+the release: the job reports it in its summary and leaves the line unpublished.
+
+v0.1 is the first line that gets an archive, when v0.2.0 ships. A line whose
+last commit predates the Starlight site is skipped, because it can't build
+under a line's own path.
+
+To build an archived line by hand, for example to replace a lost archive, check
+out the commit the script prints and build it with the line set. Without
+`SITE_METADATA_FILE` the pages leave out the APT fingerprint; the docs-archive
+job in `.github/workflows/release-assets.yml` shows how it writes that file.
+Then run Deploy Pages Site to publish it.
+
+```bash
+git checkout "$(bash scripts/docs-archive-commit.sh v0.1.4 v0.2.0)"
+SITE_ARCHIVE=v0.1 make website-build
+SITE_ARCHIVE=v0.1 make website-check
+tar -C website/dist -czf zquota-docs-v0.1.tar.gz .
+gh release upload v0.1.4 zquota-docs-v0.1.tar.gz --clobber
+gh workflow run deploy-pages-site.yml
+```
