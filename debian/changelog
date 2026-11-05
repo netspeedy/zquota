@@ -1,3 +1,17 @@
+zquota (0.1.4-1) stable; urgency=medium
+
+  * Promote to stable automatically only for automated updates (#29).
+  * Fail promotion early when the release token is missing (#30).
+  * Match the release-bearing types in the sweep's merge summary (#31).
+  * Recognise automated updates by author email, not name (#32).
+  * Stop old site files lingering on Pages (#33).
+  * Rebuild the website as a Starlight docs site (#34).
+  * Require Node 22.23.4 for the docs site, as Astro does (#35).
+  * Always install the newest Node 22 for the site build (#36).
+  * Stop an empty or path-shaped timezone crashing zquota (#37).
+
+ -- Simon Oakes <813389+soakes@users.noreply.github.com>  Thu, 05 Nov 2026 09:34:53 +0000
+
 zquota (0.1.3-1) stable; urgency=medium
 
   * Use the branded favicon logo in masthead and footer.
