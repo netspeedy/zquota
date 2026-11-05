@@ -15,7 +15,7 @@ kept between 0 and 100. The default view prints both without trailing zeros, so 
 
 ```text
   │  [██████████████░░░░░░░░░░] 62% used
-  │  Remaining: 38%
+  │  Remaining:  38%
 ```
 
 `--threshold` compares against `percentage_used`, so a window counts as over the line once its
@@ -72,7 +72,7 @@ When a window has `usageDetails`, the default view lists each entry under `Detai
 model code and its usage as Z.ai sent them:
 
 ```text
-  │  Resets at:   2026-11-05 09:25:00 GMT
+  │  Resets at:  2026-11-05 09:25:00 GMT
   │  Details:
   │    • glm-4.5: 1234
   ──────────────────────────────────

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import http.client
 import json
+import re
 import unittest
 import urllib.error
 from datetime import datetime, timezone
@@ -64,6 +65,26 @@ class QuotaFormattingTests(unittest.TestCase):
         self.assertEqual(item["resets_at_utc"], "2026-05-23T14:00:00Z")
         self.assertEqual(item["reset_epoch_ms"], reset_ms())
         self.assertEqual(item["timezone"], "Europe/London")
+
+    def test_default_view_puts_every_value_in_one_column(self) -> None:
+        _, limits = zquota.parse_payload(sample_payload())
+        item = zquota.build_quota_item(
+            limits[0],
+            zquota.get_timezone("Europe/London"),
+            datetime(2026, 5, 23, 13, 30, tzinfo=timezone.utc),
+        )
+        stdout = StringIO()
+
+        with patch("sys.stdout", new=stdout):
+            zquota.print_pretty("pro", [item], use_color=False)
+
+        # Each match runs from the start of a "Label: value" line to the value's first character.
+        fields = re.findall(r"^  \u2502  [A-Z][a-z ]+: +\S", stdout.getvalue(), re.M)
+        self.assertEqual(
+            [field.split(":")[0].split("  ")[-1] for field in fields],
+            ["Remaining", "Limit", "Used", "Remaining", "Resets in", "Resets at"],
+        )
+        self.assertEqual({len(field) for field in fields}, {18}, fields)
 
     def test_json_lines_contains_script_friendly_reset_fields(self) -> None:
         _, limits = zquota.parse_payload(sample_payload())
