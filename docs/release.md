@@ -39,6 +39,10 @@ The release version is based on conventional commit subjects:
 | `type!: ...` or `BREAKING CHANGE:` | major |
 | docs, CI, tests, and refactors only | no release by default |
 
+Dependabot titles its pip updates `deps:`, since they change what ships, and the
+website's npm updates `chore:`, so a docs-site dependency bump doesn't cut a
+release.
+
 ## Release Candidates
 
 The `Automated Release Candidate` workflow can create `vX.Y.Z-rc.N` tags after validation succeeds on `main`.
