@@ -54,7 +54,7 @@ resets after the clocks change shows the new abbreviation. A window that resets 
 
 ## Choosing the timezone
 
-zquota uses the first of these that's set:
+zquota uses the first of these that's set and not empty:
 
 1. `--timezone` or `-z`
 2. the `ZAI_TIMEZONE` environment variable

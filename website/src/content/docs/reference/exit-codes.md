@@ -25,8 +25,8 @@ Each of these prints `ERROR: <reason>` to standard error:
 With `--watch`, a failed refresh stops the watch with 1. An unknown timezone is only a warning and
 doesn't change the exit code.
 
-The few failures zquota doesn't catch, such as an empty `ZAI_TIMEZONE` or a connection that breaks
-while the answer is being read, end in a Python traceback, and Python exits with 1 for those too.
+The few failures zquota doesn't catch, such as a connection that breaks while the answer is being
+read, end in a Python traceback, and Python exits with 1 for those too.
 [Troubleshooting](/zquota/guides/troubleshooting/) covers each error.
 
 ## 2: threshold breach or usage error

@@ -98,7 +98,9 @@ def get_timezone(timezone_name: str) -> ZoneInfo:
     """Return a ZoneInfo object, falling back to default when invalid."""
     try:
         return ZoneInfo(timezone_name)
-    except ZoneInfoNotFoundError:
+    except (ZoneInfoNotFoundError, ValueError):
+        # A name shaped like a path, such as "Europe/" or "/etc/localtime", raises ValueError
+        # instead of ZoneInfoNotFoundError.
         print(
             f"WARNING: unknown timezone {timezone_name!r}; using {DEFAULT_TIMEZONE}",
             file=sys.stderr,
@@ -488,7 +490,8 @@ def run_once(
         return 1, None, None, None
 
     api_url = args.api_url or os.getenv("ZAI_API_URL", API_URL)
-    tz_name = args.timezone or os.getenv("ZAI_TIMEZONE", DEFAULT_TIMEZONE)
+    # An empty ZAI_TIMEZONE counts as unset, as an empty --timezone does.
+    tz_name = args.timezone or os.getenv("ZAI_TIMEZONE") or DEFAULT_TIMEZONE
     local_tz = get_timezone(tz_name)
 
     try:

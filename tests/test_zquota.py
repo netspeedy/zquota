@@ -109,5 +109,37 @@ class MainTests(unittest.TestCase):
         self.assertIn("--threshold must be between 0 and 100", stderr.getvalue())
 
 
+class TimezoneTests(unittest.TestCase):
+    def run_json(self, *argv: str, env: dict[str, str] | None = None) -> tuple[int, str, str]:
+        """Run main() with --json against the sample payload; return (code, stdout, stderr)."""
+        stdout, stderr = StringIO(), StringIO()
+        with (
+            patch.dict("os.environ", env or {}),
+            patch("zquota.fetch_json", return_value=sample_payload()),
+            patch("sys.stdout", new=stdout),
+            patch("sys.stderr", new=stderr),
+        ):
+            code = zquota.main(["--json", "--api-key", "test", *argv])
+        return code, stdout.getvalue(), stderr.getvalue()
+
+    def test_empty_timezone_variable_counts_as_unset(self) -> None:
+        code, stdout, stderr = self.run_json(env={"ZAI_TIMEZONE": ""})
+
+        self.assertEqual(code, 0)
+        self.assertEqual(json.loads(stdout)["quotas"][0]["timezone"], "Europe/London")
+        self.assertEqual(stderr, "")
+
+    def test_path_shaped_timezone_warns_and_falls_back(self) -> None:
+        for name in ("Europe/", "../etc", "/etc/localtime"):
+            with self.subTest(name=name):
+                code, stdout, stderr = self.run_json("--timezone", name)
+
+                self.assertEqual(code, 0)
+                self.assertEqual(json.loads(stdout)["quotas"][0]["timezone"], "Europe/London")
+                self.assertEqual(
+                    stderr, f"WARNING: unknown timezone {name!r}; using Europe/London\n"
+                )
+
+
 if __name__ == "__main__":
     unittest.main()
