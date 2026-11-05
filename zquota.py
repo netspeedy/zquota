@@ -407,6 +407,9 @@ def print_http_error(http_error: urllib.error.HTTPError) -> None:
     except (OSError, http.client.HTTPException):
         # The status is the error; a body that times out or breaks off is left out.
         body = ""
+    finally:
+        # The error holds the response open until it's closed or garbage-collected.
+        http_error.close()
     print_error(f"HTTP {http_error.code}: {http_error.reason}")
     if body:
         print(body, file=sys.stderr)
