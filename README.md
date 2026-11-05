@@ -92,12 +92,12 @@ You get your plan and a block for each quota window:
   │  5-Hour Rolling Token Quota
   │
   │  [████████████░░░░░░░░░░░░] 50% used
-  │  Remaining: 50%
+  │  Remaining:  50%
   │  Limit:      1.0M
   │  Used:       500.0k
   │  Remaining:  500.0k
-  │  Resets in:   30m
-  │  Resets at:   2026-05-23 15:00:00 BST
+  │  Resets in:  30m
+  │  Resets at:  2026-05-23 15:00:00 BST
   ──────────────────────────────────
 ```
 

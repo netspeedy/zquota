@@ -268,6 +268,11 @@ def _pct_color(pct: float) -> str:
     return COLOR_GREEN
 
 
+def _print_field(accent: str, label: str, value: str) -> None:
+    """Print one "Label: value" line of the default view, with every value in the same column."""
+    print(f"  {accent}  {label + ':':<12}{value}")
+
+
 def _print_pretty_item(item: dict[str, Any], use_color: bool) -> None:
     """Print a single quota bucket with a left accent bar."""
     accent = color(ACCENT, COLOR_DIM, use_color)
@@ -284,7 +289,7 @@ def _print_pretty_item(item: dict[str, Any], use_color: bool) -> None:
         print(f"  {accent}  [{pbar}] {pct_label} used")
         remaining_pct = item["percentage_remaining"]
         if remaining_pct is not None:
-            print(f"  {accent}  Remaining: {remaining_pct:g}%")
+            _print_field(accent, "Remaining", f"{remaining_pct:g}%")
 
     for key, label_text in [
         ("usage_limit", "Limit"),
@@ -293,13 +298,12 @@ def _print_pretty_item(item: dict[str, Any], use_color: bool) -> None:
     ]:
         val = item[key]
         if val is not None:
-            print(f"  {accent}  {label_text + ':':<12}{format_number(val)}")
+            _print_field(accent, label_text, format_number(val))
 
     if item["resets_in"] is not None:
-        reset_colored = color(item["resets_in"], COLOR_YELLOW, use_color)
-        print(f"  {accent}  Resets in:   {reset_colored}")
+        _print_field(accent, "Resets in", color(item["resets_in"], COLOR_YELLOW, use_color))
     if item["resets_at"] is not None:
-        print(f"  {accent}  Resets at:   {color(item['resets_at'], COLOR_DIM, use_color)}")
+        _print_field(accent, "Resets at", color(item["resets_at"], COLOR_DIM, use_color))
 
     if item["details"]:
         print(f"  {accent}  {color('Details:', COLOR_DIM, use_color)}")
