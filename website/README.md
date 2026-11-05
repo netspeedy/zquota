@@ -32,4 +32,5 @@ together with it. Deploy Pages Site runs on every push to `main`: it restores th
 last published APT snapshot, rebuilds the page with the latest stable release's
 version and highlights, and deploys both. Publish Signed Debian Repository does
 the same at release time, with the new packages. Dependabot checks the npm
-dependencies here daily.
+dependencies here daily and titles its pull requests `chore:`, so a site update
+doesn't cut a release.
