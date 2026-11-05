@@ -1,6 +1,6 @@
 # Release Flow
 
-`zquota` uses the same public-release shape as the other maintained repos: validation first, an automated release candidate that's promoted to stable automatically once its publish path passes, GitHub release assets, and a signed APT repository on GitHub Pages.
+`zquota` uses the same public-release shape as the other maintained repos: validation first, an automated release candidate, which is promoted to stable automatically when it only holds automated updates, GitHub release assets, and a signed APT repository on GitHub Pages.
 
 ## Validation
 
@@ -53,7 +53,7 @@ Release candidate tags publish prerelease assets through the `Release Assets` wo
 
 ## Stable Releases
 
-Once a release candidate's assets publish, the same `Automated Release Candidate` run tags that commit as the stable release, for example `v1.0.0-rc.1` becomes `v1.0.0`, and waits for the stable `Release Assets` and `Publish Signed Debian Repository` runs. The stable tag is pushed with `RELEASE_AUTOMATION_TOKEN`, because a tag pushed with `GITHUB_TOKEN` wouldn't start them. The `Promote Release Candidate` workflow is only for finishing a run that failed partway.
+Once a release candidate's assets publish, the same `Automated Release Candidate` run checks who the release is from (`scripts/automated-only.sh`). If every release-bearing commit since the last stable release came from Dependabot, Renovate or this repository's own workflows, it tags that commit as the stable release, for example `v1.0.0-rc.1` becomes `v1.0.0`, and waits for the stable `Release Assets` and `Publish Signed Debian Repository` runs. If any came from a person, it stops at the candidate, and someone runs the `Promote Release Candidate` workflow when it's ready. The stable tag is pushed with `RELEASE_AUTOMATION_TOKEN`, because a tag pushed with `GITHUB_TOKEN` wouldn't start them. `Promote Release Candidate` also finishes a run that failed partway.
 
 Stable tags publish a GitHub release marked as latest and publish the signed APT repository and landing site to GitHub Pages.
 
