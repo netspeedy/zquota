@@ -1,0 +1,140 @@
+---
+title: Installation
+description: Homebrew, the signed APT repository, a single Debian package, pip, the single file, and building from a checkout.
+---
+
+import { Code } from "@astrojs/starlight/components";
+import { links, release } from "../../lib/site";
+
+export const pinned = release.tagged ? release.version : "v1.2.3";
+export const plain = pinned.replace(/^v/, "");
+export const debVersion = `${plain.replace("-rc.", "~rc.")}-1`;
+
+zquota is one Python file with no dependencies outside the standard library, and every way of
+installing it needs Python 3.12 or newer. Each stable release publishes:
+
+- `zquota-<version>.tar.gz`, a source archive of the tagged commit
+- `zquota_<version>-1_all.deb`, a Debian package for every architecture, with the Debian source
+  package files beside it
+- `sha256sums.txt`, covering the files above
+- a signed APT repository on this site, and an update to the
+  [Homebrew tap](https://github.com/netspeedy/homebrew-zquota)
+
+Release candidates use tags like `v1.2.3-rc.1` and get a GitHub release of their own, but the APT
+repository and the Homebrew tap only ever carry stable releases.
+
+## Homebrew
+
+On macOS or Linux with Homebrew:
+
+```bash
+brew tap netspeedy/zquota
+brew install zquota
+```
+
+Recent Homebrew asks you to trust a new third-party tap. If the install is refused, run
+`brew trust netspeedy/zquota` once and install again. The formula installs the script as `zquota`
+and runs it with Homebrew's own Python, so it doesn't matter which `python3` is first on your path.
+
+## Signed APT repository
+
+On Debian and Ubuntu, add the archive key and the source, then install:
+
+<Code lang="bash" code={`sudo install -d -m 0755 /etc/apt/keyrings
+curl -fsSL ${links.aptKey} \\
+  | sudo tee /etc/apt/keyrings/zquota-archive-keyring.gpg >/dev/null
+
+curl -fsSL ${links.aptKeyFingerprint}
+
+sudo tee /etc/apt/sources.list.d/zquota.sources >/dev/null <<'EOF'
+Types: deb deb-src
+URIs: ${links.aptUrl}
+Suites: stable
+Components: main
+Signed-By: /etc/apt/keyrings/zquota-archive-keyring.gpg
+EOF
+
+sudo apt update
+sudo apt install zquota`} />
+
+{release.aptFingerprint ? (
+  <p>The repository is signed with <code>{release.aptFingerprint}</code>. Check that the published fingerprint the second command prints matches it before you go on.</p>
+) : (
+  <p>The second command prints the archive key's published fingerprint. Check it against a copy you got another way before you trust the key.</p>
+)}
+
+The package depends on `python3` 3.12 or newer, so it installs on Debian 13 (trixie), Ubuntu
+24.04 and later, and not on older releases whose `python3` is 3.11 or below. It puts the command
+at `/usr/bin/zquota` and the man page at `zquota(1)`, so `man zquota` works.
+
+The repository lives at the root of this site, beside the docs. It has a `deb-src` index too, so
+`apt source zquota` fetches the Debian source package.
+
+### A single Debian package
+
+To install one package without adding the repository, download it from the release and let apt
+install it:
+
+<Code lang="bash" code={`curl -fsSLO ${links.releases}/download/${pinned}/zquota_${debVersion}_all.deb
+curl -fsSLO ${links.releases}/download/${pinned}/sha256sums.txt
+sha256sum -c --ignore-missing sha256sums.txt
+sudo apt install ./zquota_${debVersion}_all.deb`} />
+
+A package installed this way doesn't update with `apt upgrade`.
+
+## pip
+
+pip can install it straight from the repository at a release tag:
+
+<Code lang="bash" code={`python3 -m pip install git+${links.repo}.git@${pinned}`} />
+
+That gives you a `zquota` command wherever pip puts scripts for that Python, such as a virtual
+environment's `bin` or `~/.local/bin`. On systems that mark their Python as externally managed,
+install it into a virtual environment, or with pipx:
+
+<Code lang="bash" code={`pipx install git+${links.repo}.git@${pinned}`} />
+
+## Single file
+
+zquota doesn't need installing at all. Download the script from a release tag, make it
+executable and put it on your `PATH`:
+
+<Code lang="bash" code={`mkdir -p ~/.local/bin
+curl -fsSL ${links.raw}/${pinned}/zquota.py -o ~/.local/bin/zquota
+chmod +x ~/.local/bin/zquota`} />
+
+The script starts with `#!/usr/bin/env python3`, so the first `python3` on your path has to be
+3.12 or newer. With an older one, run it with a newer interpreter instead, such as
+`python3.12 ~/.local/bin/zquota`.
+
+## From a checkout
+
+To run the code on `main` or work on it, clone the repository and install it into a virtual
+environment:
+
+```bash
+git clone https://github.com/netspeedy/zquota.git
+cd zquota
+python3 -m venv .venv
+. .venv/bin/activate
+python3 -m pip install .
+```
+
+Install `'.[dev]'` instead of `.` for the formatters, linters and build tools the Makefile uses.
+You can also run the file in place with `python3 zquota.py`, which is what the Makefile's `smoke`
+target does.
+
+## Upgrading and removing
+
+| Installed with | Upgrade | Remove |
+| --- | --- | --- |
+| Homebrew | `brew upgrade zquota` | `brew uninstall zquota` |
+| APT repository | `sudo apt update && sudo apt upgrade` | `sudo apt remove zquota` |
+| pip | install again at the new tag | `python3 -m pip uninstall zquota` |
+| Single file | download the new tag over the old file | delete the file |
+
+zquota keeps no state on disk, so removing it leaves nothing behind but the environment variables
+you set. To stop using the APT repository, delete `/etc/apt/sources.list.d/zquota.sources` and
+`/etc/apt/keyrings/zquota-archive-keyring.gpg`.
+
+Check which version you're running with `zquota --version`.

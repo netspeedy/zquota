@@ -1,0 +1,125 @@
+---
+title: Quickstart
+description: Install zquota, set your Z.ai API key, read the quota view, then try the compact view, a timezone, watch mode and a threshold.
+---
+
+import InstallTabs from "../../components/InstallTabs.astro";
+import NextSteps from "../../components/NextSteps.astro";
+
+## Install
+
+<InstallTabs />
+
+Check it's on your path:
+
+```bash
+zquota --version
+```
+
+It prints `zquota` and the version, such as `zquota 0.1.3`.
+[Installation](/zquota/installation/) has the other ways to install it and what each one puts
+where.
+
+## Set your API key
+
+zquota needs a Z.ai API key. Put it in the environment rather than on the command line, where it
+would end up in your shell history and the process list:
+
+```bash
+export ZAI_API_KEY='your-api-key'
+```
+
+Add the same line to your shell's profile to keep it for new terminals.
+[Configuration](/zquota/guides/configuration/) covers the key, the timezone and the endpoint in
+more detail.
+
+## Check your quota
+
+```bash
+zquota
+```
+
+You get your plan, then a block for each window Z.ai reports:
+
+```text title="Output"
+
+  Z.ai plan: pro
+
+  │  5-Hour Rolling Token Quota
+  │
+  │  [██████████████░░░░░░░░░░] 62% used
+  │  Remaining: 38%
+  │  Limit:      1.0M
+  │  Used:       620.0k
+  │  Remaining:  380.0k
+  │  Resets in:   2h 13m 6s
+  │  Resets at:   2026-11-05 09:25:00 GMT
+  ──────────────────────────────────
+  │  Weekly Token Quota
+  │
+  │  [███████░░░░░░░░░░░░░░░░░] 31% used
+  │  Remaining: 69%
+  │  Limit:      8.0M
+  │  Used:       2.5M
+  │  Remaining:  5.5M
+  │  Resets in:   4d 6h 11m
+  │  Resets at:   2026-11-09 13:23:00 GMT
+  ──────────────────────────────────
+```
+
+Each block has the window's name, a bar of how much you've used with the percentage beside it,
+what's left as a percentage, the window's limit, what you've used and what remains, and when it
+resets: a countdown and the exact local time. On a terminal the bar is green below 70%, yellow from
+70% and red from 90%, and the countdown is yellow. Windows appear in the order Z.ai lists them.
+
+[Quota windows](/zquota/windows/) explains each window, and
+[Usage and limits](/zquota/windows/usage/) explains the numbers.
+
+## Try the other views
+
+One line per window, for a narrow terminal or a status bar:
+
+```bash
+zquota --compact
+```
+
+```text title="Output"
+Plan: pro
+  5h-rolling     [██████░░░░]    62%  left:  380.0k  reset: 2h 13m 6s
+  weekly         [███░░░░░░░]    31%  left:    5.5M  reset: 4d 6h 11m
+```
+
+Reset times are shown in `Europe/London` unless you say otherwise. Give an IANA timezone name with
+`--timezone`, or set `ZAI_TIMEZONE` to make it stick:
+
+```bash
+zquota --timezone America/New_York
+export ZAI_TIMEZONE=America/New_York
+```
+
+Keep the view on screen and refresh it every 30 seconds until you press Ctrl-C:
+
+```bash
+zquota --watch 30
+```
+
+Exit with code 2 when any window is at 80% or more, which is what a script or a cron job checks:
+
+```bash
+zquota --threshold 80
+echo $?
+```
+
+The view prints either way. The exit code is 0 when every window is under the threshold, 2 when
+at least one has reached it, and 1 when zquota couldn't get an answer at all.
+
+## Next steps
+
+<NextSteps
+  links={[
+    { title: "Reset times", href: "/zquota/windows/reset-times/", description: "Where the reset time comes from and the three forms zquota prints it in." },
+    { title: "Output formats", href: "/zquota/guides/output-formats/", description: "The default and compact views, JSON, JSON Lines and the raw response." },
+    { title: "Scripts and alerts", href: "/zquota/guides/scripting/", description: "Cron, jq and --threshold, with the exit codes to check." },
+    { title: "Troubleshooting", href: "/zquota/guides/troubleshooting/", description: "What each error means and what to do about it." },
+  ]}
+/>

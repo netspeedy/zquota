@@ -92,7 +92,6 @@ autolabeler:
       - "scripts/check-version-consistency.sh"
       - "scripts/next-release.sh"
       - "scripts/generate-release-notes.sh"
-      - "scripts/generate-website-highlights.sh"
       - "scripts/wait-for-tag-workflow-runs.sh"
       - ".github/release-drafter.yml"
       - ".github/workflows/automated-release.yml"

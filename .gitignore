@@ -12,6 +12,9 @@ htmlcov/
 site/
 _build/
 node_modules/
+website/.astro/
+website/.captures/
+website/.test/
 
 .venv/
 venv/

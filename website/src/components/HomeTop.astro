@@ -1,0 +1,494 @@
+---
+// The top of the home page: the title and lead on the left, and on the right a dark panel with the
+// default view, a threshold check and the environment zquota reads. The output is what zquota
+// printed for a sample response in the shape its tests use (a five-hour and a weekly window),
+// captured on 2026-11-05 at 07:11 UTC, so "Resets in" counts down from then. Keep it in step with
+// the quickstart, which shows the same run.
+import { product, release } from "../lib/site";
+
+const { title } = Astro.locals.starlightRoute.entry.data;
+// "No quota guesswork. Exact reset times." goes on two lines.
+const lines = title.split(/(?<=\.)\s+/);
+
+const esc = (text: string) =>
+  text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+const span = (cls: string, text: string) => `<span class="${cls}">${esc(text)}</span>`;
+
+/** One shell line: the command, flags, arguments and a trailing line continuation. */
+function shell(line: string, first: boolean): string {
+  let command = first;
+  const words = line.split(/( +)/).map((word) => {
+    if (!word.trim()) return word;
+    if (word === "\\") return span("m", word);
+    if (command) {
+      command = false;
+      return span("c", word);
+    }
+    return span(word.startsWith("-") ? "f" : "v", word);
+  });
+  return (first ? span("p", "$ ") : "") + words.join("");
+}
+const commandLines = (lines: string[]) => lines.map((line, i) => shell(line, i === 0));
+
+/** zquota colours a bar and its percentage green below 70%, yellow from 70% and red from 90%. */
+const meterClass = (pct: number) => (pct >= 90 ? "e" : pct >= 70 ? "d" : "y");
+
+/** A line of the default view, coloured the way zquota colours it on a terminal. */
+function view(line: string): string {
+  if (/^\s*─+$/.test(line)) return span("m", line);
+  const plan = line.match(/^(\s*)(Z\.ai)( plan: )(.+)$/);
+  if (plan) return plan[1] + span("h", plan[2]) + esc(plan[3]) + span("f", plan[4]);
+  const row = line.match(/^(\s*)(│)(.*)$/);
+  if (!row) return esc(line);
+  const [, indent, accent, rest] = row;
+  const meter = rest.match(/^(\s*\[)([█░]+)(\] )(\d+(?:\.\d+)?)(% used)$/);
+  const reset = rest.match(/^(\s*Resets (?:in|at):\s+)(.+)$/);
+  let body = esc(rest);
+  if (meter) {
+    const hue = meterClass(Number(meter[4]));
+    body = esc(meter[1]) + span(hue, meter[2]) + esc(meter[3]) + span(hue, meter[4] + meter[5].slice(0, 1)) + esc(meter[5].slice(1));
+  } else if (reset) {
+    body = esc(reset[1]) + span(rest.includes("Resets in") ? "d" : "m", reset[2]);
+  } else if (/^\s+\S.*Quota/.test(rest)) {
+    body = span("h", rest);
+  }
+  return indent + span("m", accent) + body;
+}
+
+/** A line of the compact view: only the bar is coloured. */
+function compactLine(line: string): string {
+  const row = line.match(/^(\s*\S+\s+\[)([█░]+)(\]\s+)(\d+(?:\.\d+)?)(%.*)$/);
+  if (!row) return esc(line);
+  return esc(row[1]) + span(meterClass(Number(row[4])), row[2]) + esc(row[3] + row[4] + row[5]);
+}
+
+/** A line of shell setup: comments, and export NAME='value'. */
+function env(line: string): string {
+  if (/^\s*#/.test(line)) return span("cm", line);
+  const pair = line.match(/^(export )(\w+)(=)(.*)$/);
+  if (!pair) return esc(line);
+  return span("c", pair[1].trim()) + " " + span("k", pair[2]) + span("jp", pair[3]) + span("js", pair[4]);
+}
+
+const viewRun = ["zquota"];
+const viewOutput = `
+  Z.ai plan: pro
+
+  │  5-Hour Rolling Token Quota
+  │
+  │  [██████████████░░░░░░░░░░] 62% used
+  │  Remaining: 38%
+  │  Limit:      1.0M
+  │  Used:       620.0k
+  │  Remaining:  380.0k
+  │  Resets in:   2h 13m 6s
+  │  Resets at:   2026-11-05 09:25:00 GMT
+  ──────────────────────────────────
+  │  Weekly Token Quota
+  │
+  │  [███████░░░░░░░░░░░░░░░░░] 31% used
+  │  Remaining: 69%
+  │  Limit:      8.0M
+  │  Used:       2.5M
+  │  Remaining:  5.5M
+  │  Resets in:   4d 6h 11m
+  │  Resets at:   2026-11-09 13:23:00 GMT
+  ──────────────────────────────────`;
+const thresholdRun = ["zquota --compact --threshold 60"];
+const thresholdOutput = `Plan: pro
+  5h-rolling     [██████░░░░]    62%  left:  380.0k  reset: 2h 13m 5s
+  weekly         [███░░░░░░░]    31%  left:    5.5M  reset: 4d 6h 11m`;
+const setup = `# in ~/.zshrc, ~/.bashrc or wherever your shell keeps its environment
+export ZAI_API_KEY='your-api-key'
+# optional: reset times in your own timezone, not Europe/London
+export ZAI_TIMEZONE='America/New_York'`;
+
+const tabs = [
+  {
+    id: "view",
+    label: "Quota view",
+    copy: viewRun.join("\n"),
+    lines: [...commandLines(viewRun), ...viewOutput.split("\n").map(view)],
+  },
+  {
+    id: "threshold",
+    label: "Threshold",
+    copy: [...thresholdRun, "echo $?"].join("\n"),
+    lines: [
+      span("cm", "# exits 2: the five-hour window is past 60%"),
+      ...commandLines(thresholdRun),
+      ...thresholdOutput.split("\n").map(compactLine),
+      shell("echo $?", true),
+      "2",
+    ],
+  },
+  {
+    id: "environment",
+    label: "Environment",
+    copy: setup,
+    lines: setup.split("\n").map(env),
+  },
+];
+const install = "brew tap netspeedy/zquota && brew install zquota";
+const copyIcon =
+  '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>';
+---
+
+<section class="ns-home-top not-content">
+  <div class="ns-home-copy">
+    <p class="ns-home-label">{product.name} documentation{release.tagged && ` · ${release.version}`}</p>
+    <h1 id="_top">{lines.map((line, i) => (i ? [<br />, line] : line))}</h1>
+    <div class="ns-home-lead"><slot /></div>
+    <div class="ns-home-actions">
+      <a class="ns-button ns-button-primary" href={`${import.meta.env.BASE_URL}quickstart/`}>
+        Read the quickstart
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+      </a>
+      <a class="ns-button" href={`${import.meta.env.BASE_URL}windows/`}>Quota windows</a>
+    </div>
+    <ns-copy class="ns-home-install" data-copy={install}>
+      <code><span class="ns-prompt">$ </span>{install}</code>
+      <button type="button" aria-label="Copy the install commands" set:html={copyIcon} />
+    </ns-copy>
+  </div>
+
+  <ns-code-tabs class="ns-panel">
+    <div class="ns-panel-head">
+      <div role="tablist" aria-label="Examples">
+        {
+          tabs.map((tab, i) => (
+            <button
+              type="button"
+              role="tab"
+              id={`ns-tab-${tab.id}`}
+              aria-controls={`ns-panel-${tab.id}`}
+              aria-selected={i === 0 ? "true" : "false"}
+              tabindex={i === 0 ? 0 : -1}
+            >
+              {tab.label}
+            </button>
+          ))
+        }
+      </div>
+      <button type="button" class="ns-panel-copy" aria-label="Copy the command" set:html={copyIcon} />
+    </div>
+    {
+      tabs.map((tab, i) => (
+        <div
+          class="ns-panel-body"
+          role="tabpanel"
+          id={`ns-panel-${tab.id}`}
+          aria-labelledby={`ns-tab-${tab.id}`}
+          data-copy={tab.copy}
+          hidden={i !== 0}
+          tabindex="0"
+        >
+          <pre set:html={tab.lines.join("\n")} />
+        </div>
+      ))
+    }
+  </ns-code-tabs>
+</section>
+
+<script>
+  async function copy(text: string, button: HTMLElement) {
+    try {
+      await navigator.clipboard.writeText(text);
+      button.dataset.copied = "";
+      setTimeout(() => delete button.dataset.copied, 1600);
+    } catch {
+      // No clipboard access (an insecure origin or a refused permission): leave the text to select.
+    }
+  }
+
+  class CopyText extends HTMLElement {
+    connectedCallback() {
+      const button = this.querySelector("button");
+      button?.addEventListener("click", () => copy(this.dataset.copy ?? "", button));
+    }
+  }
+
+  class CodeTabs extends HTMLElement {
+    connectedCallback() {
+      const tabs = [...this.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
+      const select = (chosen: HTMLButtonElement) => {
+        for (const tab of tabs) {
+          const on = tab === chosen;
+          tab.setAttribute("aria-selected", String(on));
+          tab.tabIndex = on ? 0 : -1;
+          const panel = document.getElementById(tab.getAttribute("aria-controls") ?? "");
+          if (panel) panel.hidden = !on;
+        }
+      };
+      tabs.forEach((tab, i) => {
+        tab.addEventListener("click", () => select(tab));
+        tab.addEventListener("keydown", (event) => {
+          const step = event.key === "ArrowRight" ? 1 : event.key === "ArrowLeft" ? -1 : 0;
+          if (!step) return;
+          const next = tabs[(i + step + tabs.length) % tabs.length];
+          select(next);
+          next.focus();
+        });
+      });
+      const copyButton = this.querySelector<HTMLButtonElement>(".ns-panel-copy");
+      copyButton?.addEventListener("click", () => {
+        const panel = this.querySelector<HTMLElement>('[role="tabpanel"]:not([hidden])');
+        if (panel) copy(panel.dataset.copy ?? "", copyButton);
+      });
+    }
+  }
+
+  customElements.define("ns-copy", CopyText);
+  customElements.define("ns-code-tabs", CodeTabs);
+</script>
+
+<style>
+  .ns-home-top {
+    display: grid;
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+    gap: 3.5rem;
+    align-items: center;
+    padding: 2.5rem 0 4rem;
+  }
+  .ns-home-label {
+    margin: 0;
+    font-family: var(--__sl-font-mono);
+    font-size: var(--sl-text-xs);
+    color: var(--sl-color-gray-3);
+  }
+  h1 {
+    margin: 0.875rem 0 0;
+    /* A little smaller than the other sites' headlines, so "No quota guesswork." keeps to one
+       line beside the panel. */
+    font-size: clamp(2.125rem, 1.4rem + 2.2vw, 2.875rem);
+    line-height: 1.06;
+    font-weight: 700;
+    letter-spacing: -0.038em;
+    color: var(--sl-color-white);
+  }
+  .ns-home-lead {
+    max-width: 32.5rem;
+    margin-top: 1.25rem;
+    font-size: var(--sl-text-lg);
+    line-height: 1.65;
+    color: var(--sl-color-gray-2);
+  }
+  .ns-home-lead :global(p) {
+    margin: 0;
+  }
+  .ns-home-lead :global(code) {
+    padding: 0.0625rem 0.3125rem;
+    border: 1px solid var(--sl-color-hairline-shade);
+    border-radius: 5px;
+    background-color: var(--sl-color-gray-7);
+    font-size: 0.84em;
+    color: var(--sl-color-white);
+    white-space: nowrap;
+  }
+  .ns-home-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.625rem;
+    margin-top: 1.875rem;
+  }
+  .ns-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    height: 2.75rem;
+    padding: 0 1.125rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 9px;
+    font-size: var(--sl-text-sm);
+    font-weight: 600;
+    color: var(--sl-color-white);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .ns-button:hover {
+    border-color: var(--sl-color-gray-3);
+  }
+  .ns-button svg {
+    width: 1rem;
+    height: 1rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .ns-button-primary {
+    border-color: var(--sl-color-white);
+    background-color: var(--sl-color-white);
+    color: var(--sl-color-black);
+  }
+  .ns-button-primary:hover {
+    border-color: var(--sl-color-gray-1);
+    background-color: var(--sl-color-gray-1);
+  }
+  .ns-home-install {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    margin-top: 1.25rem;
+  }
+  .ns-home-install code {
+    font-family: var(--__sl-font-mono);
+    font-size: var(--sl-text-xs);
+    color: var(--sl-color-gray-2);
+  }
+  .ns-prompt {
+    color: var(--sl-color-gray-3);
+  }
+  button {
+    font: inherit;
+    cursor: pointer;
+  }
+  .ns-home-install button,
+  .ns-panel-copy {
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    padding: 0;
+    border: 0;
+    border-radius: 7px;
+    background: none;
+    color: var(--sl-color-gray-3);
+  }
+  .ns-home-install button:hover {
+    color: var(--sl-color-white);
+  }
+  .ns-home-install button :global(svg),
+  .ns-panel-copy :global(svg) {
+    width: 0.9375rem;
+    height: 0.9375rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linejoin: round;
+  }
+  [data-copied] {
+    color: var(--ns-ok) !important;
+  }
+
+  /* The panel is dark in both themes, like every code block on the site. */
+  .ns-panel {
+    display: block;
+    min-width: 0;
+    border: 1px solid #1c2330;
+    border-radius: 14px;
+    background-color: #0b0f16;
+    box-shadow: 0 30px 60px -30px rgb(11 18 32 / 0.45);
+    overflow: hidden;
+    color: #dce4ee;
+  }
+  :global([data-theme="dark"]) .ns-panel {
+    box-shadow: none;
+  }
+  .ns-panel-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    height: 2.75rem;
+    padding: 0 0.375rem;
+    border-bottom: 1px solid #1c2330;
+    background-color: #0f141d;
+  }
+  [role="tablist"] {
+    display: flex;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  [role="tab"] {
+    padding: 0.75rem 0.75rem 0.625rem;
+    border: 0;
+    border-bottom: 2px solid transparent;
+    background: none;
+    font-size: var(--sl-text-xs);
+    color: #8f9bab;
+    white-space: nowrap;
+  }
+  [role="tab"]:hover {
+    color: #e8ecf1;
+  }
+  [role="tab"][aria-selected="true"] {
+    border-bottom-color: #4bd8ff;
+    font-weight: 500;
+    color: #e8ecf1;
+  }
+  .ns-panel-copy {
+    flex: 0 0 auto;
+    color: #8f9bab;
+  }
+  .ns-panel-copy:hover {
+    color: #e8ecf1;
+  }
+  .ns-panel-body {
+    overflow-x: auto;
+  }
+  .ns-panel-body:focus-visible {
+    outline: 2px solid #4bd8ff;
+    outline-offset: -2px;
+  }
+  pre {
+    margin: 0;
+    padding: 1rem 1.125rem 1.25rem;
+    font-family: var(--__sl-font-mono);
+    font-size: 0.8125rem;
+    line-height: 1.75;
+  }
+  pre :global(.p) {
+    color: #f5b841;
+  }
+  pre :global(.c),
+  pre :global(.h) {
+    color: #ffffff;
+    font-weight: 600;
+  }
+  pre :global(.f) {
+    color: #7fe3ff;
+  }
+  pre :global(.v) {
+    color: #fde1a7;
+  }
+  pre :global(.m),
+  pre :global(.jp) {
+    color: #7d8999;
+  }
+  pre :global(.k) {
+    color: #a8ecff;
+  }
+  pre :global(.y) {
+    color: #3cd788;
+  }
+  pre :global(.e) {
+    color: #ff5d6c;
+  }
+  pre :global(.d),
+  pre :global(.jb) {
+    color: #f5b841;
+  }
+  pre :global(.g),
+  pre :global(.cm) {
+    color: #6b7686;
+    font-style: italic;
+  }
+  pre :global(.jk) {
+    color: #a5b1ff;
+  }
+  pre :global(.js),
+  pre :global(.u) {
+    color: #6fd8a5;
+  }
+
+  @media (max-width: 56rem) {
+    .ns-home-top {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 2.25rem;
+      padding: 1rem 0 3.5rem;
+    }
+  }
+</style>

@@ -1,0 +1,75 @@
+---
+import { Code, TabItem, Tabs } from "@astrojs/starlight/components";
+import { links, release } from "../lib/site";
+
+const brew = "brew tap netspeedy/zquota\nbrew install zquota";
+const apt = `sudo install -d -m 0755 /etc/apt/keyrings
+curl -fsSL ${links.aptKey} \\
+  | sudo tee /etc/apt/keyrings/zquota-archive-keyring.gpg >/dev/null
+
+sudo tee /etc/apt/sources.list.d/zquota.sources >/dev/null <<'EOF'
+Types: deb deb-src
+URIs: ${links.aptUrl}
+Suites: stable
+Components: main
+Signed-By: /etc/apt/keyrings/zquota-archive-keyring.gpg
+EOF
+
+sudo apt update && sudo apt install zquota`;
+const pip = `python3 -m pip install git+${links.repo}.git${release.tagged ? `@${release.version}` : ""}`;
+const file = `mkdir -p ~/.local/bin
+curl -fsSL ${links.raw}/${release.tagged ? release.version : "main"}/zquota.py -o ~/.local/bin/zquota
+chmod +x ~/.local/bin/zquota`;
+---
+
+<Tabs syncKey="install">
+  <TabItem label="Homebrew">
+    <Code lang="bash" code={brew} />
+    <p class="ns-note">
+      macOS and Linux. If Homebrew refuses the new third-party tap, run
+      <code>brew trust netspeedy/zquota</code> once, then install again.
+    </p>
+  </TabItem>
+  <TabItem label="Debian / Ubuntu">
+    <Code lang="bash" code={apt} />
+    <p class="ns-note">
+      {
+        release.aptFingerprint ? (
+          <>
+            The repository is signed with <code>{release.aptFingerprint}</code>.
+          </>
+        ) : (
+          <>
+            Check the key against the <a href={links.aptKeyFingerprint}>published fingerprint</a> before you
+            trust it.
+          </>
+        )
+      }{" "}
+      The package needs Python 3.12 or newer, so Debian 13 or Ubuntu 24.04 and later.
+    </p>
+  </TabItem>
+  <TabItem label="pip">
+    <Code lang="bash" code={pip} />
+    <p class="ns-note">Python 3.12 or newer. zquota has no dependencies outside the standard library.</p>
+  </TabItem>
+  <TabItem label="Single file">
+    <Code lang="bash" code={file} />
+    <p class="ns-note">
+      zquota is one Python file. This needs <code>python3</code> 3.12 or newer on your <code>PATH</code>, and
+      <code>~/.local/bin</code> on your <code>PATH</code> too.
+    </p>
+  </TabItem>
+</Tabs>
+
+<style>
+  .ns-note {
+    margin-top: 0.75rem;
+    font-size: var(--sl-text-sm);
+    color: var(--sl-color-gray-3);
+  }
+  .ns-note code {
+    font-size: 0.92em;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+</style>

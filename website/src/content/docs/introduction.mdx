@@ -1,0 +1,63 @@
+---
+title: Introduction
+description: zquota reads your Z.ai quota and prints each window's usage and its exact reset time, for people or for scripts.
+---
+
+import { Steps } from "@astrojs/starlight/components";
+import NextSteps from "../../components/NextSteps.astro";
+
+zquota shows how much of your Z.ai quota you've used and exactly when each window resets. Z.ai's
+usage charts don't make the five-hour rolling reset easy to read when you're planning work, so
+zquota asks the same quota API and prints your plan, a bar for each window, the numbers behind it
+and the reset time in your own timezone.
+
+It's a single Python file that needs Python 3.12 or newer and nothing outside the standard
+library. The default view is for reading in a terminal; `--compact`, `--json`, `--jsonl` and
+`--raw` print the same data for scripts. `--watch` keeps the view on screen and refreshes it, and
+`--threshold` exits with code 2 when any window reaches the percentage you set, so a script or a
+cron job can tell quota pressure apart from a bad key or a network failure, which exit with 1.
+
+## How a run works
+
+<Steps>
+
+1. zquota reads your API key from `--api-key` or `ZAI_API_KEY`, and stops with an error if
+   there's neither.
+
+2. It sends one `GET` request to Z.ai's quota endpoint with the key as a bearer token. The request
+   gives up if connecting or reading stalls for 20 seconds.
+
+3. It reads the plan name and the list of quota windows from the response. It recognises the
+   five-hour rolling token window, the weekly token window and the tool and search time window,
+   and shows anything else as an unknown window rather than dropping it.
+
+4. It works out each window's reset time in your timezone, `Europe/London` unless you choose
+   another, and prints every window in the format you asked for.
+
+</Steps>
+
+With `--watch` it repeats the last three steps on a timer. Without it, zquota exits once it has
+printed.
+
+## What it doesn't do
+
+zquota only reads. It doesn't keep a history of your usage, estimate when you'll run out or change
+anything on your Z.ai account. Each run makes one request and prints what Z.ai said at that
+moment, so if you want a history, collect `--jsonl` output from a timer.
+
+It has no config file. The API key, the timezone and the endpoint come from three environment
+variables or the matching flags, and a flag wins over its variable.
+
+zquota is an unofficial community tool, not affiliated with, endorsed by or sponsored by
+[Z.ai](https://z.ai).
+
+## Where next
+
+<NextSteps
+  links={[
+    { title: "Quickstart", href: "/zquota/quickstart/", description: "Install zquota, set your key and read your first quota view." },
+    { title: "Quota windows", href: "/zquota/windows/", description: "The windows Z.ai reports and how zquota names each one." },
+    { title: "Scripts and alerts", href: "/zquota/guides/scripting/", description: "JSON, cron and --threshold, and telling quota pressure from a failure." },
+    { title: "CLI", href: "/zquota/reference/cli/", description: "Every flag in one place." },
+  ]}
+/>

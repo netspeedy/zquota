@@ -3,13 +3,8 @@ SRC := zquota.py
 TESTS := tests
 HERO := scripts/readme
 WEBSITE_DIR ?= website
-SITE_URL ?= https://netspeedy.github.io/zquota/
-SITE_RELEASE_VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || printf '%s' dev)
-SITE_COMMIT ?= $(shell git rev-parse --short HEAD 2>/dev/null || printf '%s' local)
-SITE_BUILD_DATE ?= $(shell date -u +%Y-%m-%dT%H:%M:%SZ)
-SITE_APT_FINGERPRINT ?= Published alongside stable release builds.
 
-.PHONY: fmt fmt-check lint test smoke version-check build website-install website-dev website-check website-build readme-hero package clean
+.PHONY: fmt fmt-check lint test smoke version-check build website-install website-dev website-build website-check website-test website-capture readme-hero package clean
 
 fmt:
 	$(PYTHON) -m black $(SRC) $(TESTS) $(HERO)
@@ -42,18 +37,21 @@ website-dev:
 	test -d $(WEBSITE_DIR)/node_modules || (printf 'missing website dependencies; run `make website-install`\n' >&2 && exit 1)
 	npm --prefix $(WEBSITE_DIR) run dev
 
+website-build:
+	test -d $(WEBSITE_DIR)/node_modules || (printf 'missing website dependencies; run `make website-install`\n' >&2 && exit 1)
+	npm --prefix $(WEBSITE_DIR) run build
+
 website-check:
 	test -d $(WEBSITE_DIR)/node_modules || (printf 'missing website dependencies; run `make website-install`\n' >&2 && exit 1)
 	npm --prefix $(WEBSITE_DIR) run check
 
-website-build:
+website-test:
 	test -d $(WEBSITE_DIR)/node_modules || (printf 'missing website dependencies; run `make website-install`\n' >&2 && exit 1)
-	PUBLIC_SITE_URL=$(SITE_URL) \
-	PUBLIC_RELEASE_VERSION=$(SITE_RELEASE_VERSION) \
-	PUBLIC_COMMIT=$(SITE_COMMIT) \
-	PUBLIC_BUILD_DATE=$(SITE_BUILD_DATE) \
-	PUBLIC_APT_FINGERPRINT='$(SITE_APT_FINGERPRINT)' \
-	npm --prefix $(WEBSITE_DIR) run build
+	npm --prefix $(WEBSITE_DIR) run test
+
+website-capture:
+	test -d $(WEBSITE_DIR)/node_modules || (printf 'missing website dependencies; run `make website-install`\n' >&2 && exit 1)
+	npm --prefix $(WEBSITE_DIR) run capture
 
 readme-hero:
 	uv run $(HERO)/build_readme_hero.py
