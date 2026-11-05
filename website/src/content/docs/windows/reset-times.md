@@ -78,7 +78,8 @@ WARNING: unknown timezone 'Mars/Olympus'; using Europe/London
 ```
 
 Check the name against the tz database's, which pair a region with a city, such as
-`Europe/Paris` or `America/Los_Angeles`. With `--watch`, the warning repeats on every refresh.
+`Europe/Paris` or `America/Los_Angeles`. With `--watch`, the warning is printed once, on the first
+refresh, so it's on screen until the second one clears it.
 
 ## Windows without a reset time
 
