@@ -41,27 +41,15 @@ jobs:
 
       - name: Check automation files
         run: |
-          bash -n scripts/build-apt-repository.sh
-          bash -n scripts/check-version-consistency.sh
-          bash -n scripts/docs-archive-commit.sh
-          bash -n scripts/download-docs-archives.sh
-          bash -n scripts/generate-release-notes.sh
-          bash -n scripts/next-release.sh
-          bash -n scripts/prepare-debian-changelog.sh
-          bash -n scripts/update-debian-changelog.sh
-          bash -n scripts/update-release-metadata.sh
-          bash -n scripts/wait-for-tag-workflow-runs.sh
+          # Globs rather than lists, so a new script or workflow is checked without anyone
+          # remembering to add it here.
+          for script in scripts/*.sh; do
+            bash -n "${script}"
+          done
           ruby -e 'require "yaml"; ARGV.each { |path| YAML.load_file(path) }' \
             .github/dependabot.yml \
             .github/release-drafter.yml \
-            .github/workflows/automated-release.yml \
-            .github/workflows/automation-auto-merge.yml \
-            .github/workflows/build-and-validate.yml \
-            .github/workflows/deploy-pages-site.yml \
-            .github/workflows/promote-release.yml \
-            .github/workflows/publish-apt-repository.yml \
-            .github/workflows/release-assets.yml \
-            .github/workflows/release-drafter.yml
+            .github/workflows/*.yml
 
       - name: Check version metadata
         run: make version-check
