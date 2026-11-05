@@ -51,15 +51,17 @@ The default view shows three figures for each window:
 | `Remaining` | `remaining` | `remaining_units` |
 
 The compact view shows only what's left, after `left:`. Both views round large figures to one
-decimal place: a million and over is shown in millions, a thousand and over in thousands, and
-anything smaller as it is.
+decimal place: a billion and over is shown in billions (`B`), a million and over in millions (`M`),
+a thousand and over in thousands (`k`), and anything smaller as it is. A figure that would round
+up to 1000.0 of one unit is shown in the next one instead.
 
 | Value | Shown as |
 | --- | --- |
+| 1,500,000,000 | `1.5B` |
 | 2,480,000 | `2.5M` |
+| 999,999 | `1.0M` |
 | 620,000 | `620.0k` |
 | 1,234.5 | `1.2k` |
-| 999,999 | `1000.0k` |
 | 12 | `12` |
 
 zquota doesn't add units. For the token windows the figures are tokens; for the tool and search

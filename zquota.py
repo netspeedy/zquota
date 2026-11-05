@@ -10,6 +10,7 @@ from __future__ import annotations
 import argparse
 import http.client
 import json
+import math
 import os
 import sys
 import time
@@ -32,6 +33,9 @@ BAR_EMPTY = "\u2591"
 
 ACCENT = "\u2502"
 SEPARATOR = "\u2500"
+
+# Suffixes for format_number(), each a thousand times the one before.
+NUMBER_SUFFIXES = ("k", "M", "B")
 
 COLOR_RED = "\033[91m"
 COLOR_GREEN = "\033[92m"
@@ -249,14 +253,18 @@ def build_quota_item(item: JsonDict, local_timezone: ZoneInfo, now_utc: datetime
 
 
 def format_number(n: float | None) -> str:
-    """Format a number with k/M suffixes for human readability."""
+    """Format a number with k, M or B suffixes for human readability, such as 1.2k or 3.4M."""
     if n is None:
         return "-"
-    if n >= 1_000_000:
-        return f"{n / 1_000_000:.1f}M"
-    if n >= 1_000:
-        return f"{n / 1_000:.1f}k"
-    return f"{n:g}"
+    text = f"{n:g}"
+    if not math.isfinite(n) or abs(float(text)) < 1_000:
+        return text
+    # Each unit is tried on the rounded figure, so 999,999 is 1.0M rather than 1000.0k.
+    for power, suffix in enumerate(NUMBER_SUFFIXES, start=1):
+        text = f"{n / 1_000**power:.1f}"
+        if abs(float(text)) < 1_000 or suffix == NUMBER_SUFFIXES[-1]:
+            break
+    return text + suffix
 
 
 def _pct_color(pct: float) -> str:

@@ -46,6 +46,29 @@ class QuotaFormattingTests(unittest.TestCase):
         self.assertEqual(zquota.format_duration(90061), "1d 1h 1m")
         self.assertEqual(zquota.format_duration(0), "now")
 
+    def test_format_number_rolls_over_to_the_next_unit(self) -> None:
+        cases = {
+            999: "999",
+            999.5: "999.5",
+            999.99995: "1.0k",
+            1_000: "1.0k",
+            1_234.5: "1.2k",
+            999_949: "999.9k",
+            999_950: "1.0M",
+            999_999: "1.0M",
+            1_000_000: "1.0M",
+            2_480_000: "2.5M",
+            999_949_999: "999.9M",
+            999_950_000: "1.0B",
+            1_500_000_000: "1.5B",
+            2_000_000_000_000: "2000.0B",
+            -1_500: "-1.5k",
+            -999_999: "-1.0M",
+        }
+        for value, shown in cases.items():
+            with self.subTest(value=value):
+                self.assertEqual(zquota.format_number(value), shown)
+
     def test_progress_bar_clamps_out_of_range_percentages(self) -> None:
         negative = zquota.progress_bar(-20, width=4, use_color=False)
         too_large = zquota.progress_bar(140, width=4, use_color=False)
