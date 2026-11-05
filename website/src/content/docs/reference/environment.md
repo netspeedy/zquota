@@ -21,12 +21,10 @@ the variable.
 ## ZAI_TIMEZONE
 
 An IANA timezone name such as `America/New_York`, `Asia/Tokyo` or `UTC`. `--timezone` overrides it.
-A name zquota doesn't recognise gets
-`WARNING: unknown timezone '<name>'; using Europe/London` on standard error, and the run carries on
-in `Europe/London`.
-
-Don't set it to an empty string. Unlike an unknown name, an empty value stops zquota with a Python
-traceback rather than a warning; unset the variable instead.
+A name zquota doesn't recognise, including one shaped like a file path such as `/etc/localtime`,
+gets `WARNING: unknown timezone '<name>'; using Europe/London` on standard error, and the run carries
+on in `Europe/London`. An empty value counts as unset, so zquota uses `Europe/London` without a
+warning.
 
 ## ZAI_API_URL
 

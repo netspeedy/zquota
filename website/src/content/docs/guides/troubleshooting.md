@@ -75,12 +75,8 @@ WARNING: unknown timezone 'Mars/Olympus'; using Europe/London
 
 The name you gave in `--timezone` or `ZAI_TIMEZONE` isn't in the tz database, so reset times are
 shown in `Europe/London`. This is a warning: the exit code isn't affected. Use a name like
-`America/New_York` or `UTC`.
-
-If zquota instead stops with a Python traceback ending in `ValueError: ZoneInfo keys must be
-normalized relative paths` or `ZoneInfo keys may not be absolute paths`, `ZAI_TIMEZONE` is set but
-empty, or the timezone is a file path rather than a name. zquota doesn't catch that case. Unset
-the variable, or set it to a timezone name.
+`America/New_York` or `UTC`, not a file path such as `/etc/localtime`, which gets the same warning.
+An empty `ZAI_TIMEZONE` counts as unset and gets no warning.
 
 ## Usage errors
 
