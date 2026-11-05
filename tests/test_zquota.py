@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import http.client
 import json
+import os
 import re
 import unittest
 import urllib.error
@@ -291,6 +292,44 @@ class ReadErrorTests(unittest.TestCase):
 
         self.assertEqual(code, 1)
         self.assertEqual(stderr, "ERROR: HTTP 500: Internal Server Error\n")
+
+
+class ClosedPipe(StringIO):
+    """A stdout whose reader has gone: writing or flushing fails as it does on a closed pipe."""
+
+    def __init__(self, fd: int) -> None:
+        super().__init__()
+        self.fd = fd
+
+    def write(self, text: str) -> int:
+        raise BrokenPipeError(32, "Broken pipe")
+
+    def flush(self) -> None:
+        raise BrokenPipeError(32, "Broken pipe")
+
+    def fileno(self) -> int:
+        return self.fd
+
+
+class BrokenPipeTests(unittest.TestCase):
+    def run_into_closed_pipe(self, *argv: str) -> tuple[int, str]:
+        """Run main() with stdout a closed pipe; return (code, stderr)."""
+        fd = os.open(os.devnull, os.O_WRONLY)
+        self.addCleanup(os.close, fd)
+        stderr = StringIO()
+        with (
+            patch("zquota.fetch_json", return_value=sample_payload()),
+            patch("sys.stdout", new=ClosedPipe(fd)),
+            patch("sys.stderr", new=stderr),
+        ):
+            code = zquota.main(["--api-key", "test", *argv])
+        return code, stderr.getvalue()
+
+    def test_closed_pipe_stops_a_single_run_quietly(self) -> None:
+        self.assertEqual(self.run_into_closed_pipe("--json"), (141, ""))
+
+    def test_closed_pipe_stops_a_watch_quietly(self) -> None:
+        self.assertEqual(self.run_into_closed_pipe("--watch", "30", "--compact"), (141, ""))
 
 
 class InterruptTests(unittest.TestCase):

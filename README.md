@@ -167,6 +167,7 @@ zquota --json | jq '.quotas[] | {quota: .name_compact, local: .resets_at, utc: .
 | `1` | Runtime or input error |
 | `2` | Threshold exceeded when `--threshold` is set, or a command line that doesn't parse |
 | `130` | Interrupted with Ctrl-C, except during `--watch`, where Ctrl-C stops it with 0 |
+| `141` | Whatever was reading the output closed it first, such as `head` |
 
 Quota pressure gets its own code so that a script can tell it apart from a broken
 API key, a network failure or an invalid response. Python's argument parser also

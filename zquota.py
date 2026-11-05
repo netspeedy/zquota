@@ -23,6 +23,8 @@ from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 API_URL = "https://api.z.ai/api/monitor/usage/quota/limit"
 DEFAULT_TIMEZONE = "Europe/London"
 REQUEST_TIMEOUT_SECONDS = 20
+# The status a shell reports for a command stopped by a closed pipe: 128 plus SIGPIPE's 13.
+EXIT_BROKEN_PIPE = 141
 VERSION = "0.1.4"
 
 JsonDict = dict[str, Any]
@@ -631,6 +633,16 @@ def _run_loop(args: argparse.Namespace, use_color: bool) -> int:
         return 130
 
 
+def _discard_stdout() -> int:
+    """Point stdout at the null device once its reader has gone, and return the exit code."""
+    # Python flushes stdout again on the way out, and over the closed pipe that prints
+    # "Exception ignored" and exits with 120.
+    devnull = os.open(os.devnull, os.O_WRONLY)
+    os.dup2(devnull, sys.stdout.fileno())
+    os.close(devnull)
+    return EXIT_BROKEN_PIPE
+
+
 def main(argv: list[str] | None = None) -> int:
     """Entry point: parse args, fetch, render, optionally loop."""
     parser = build_parser()
@@ -641,7 +653,14 @@ def main(argv: list[str] | None = None) -> int:
     if validation_code is not None:
         return validation_code
 
-    return _run_loop(args, use_color)
+    # Whatever reads the output can stop first, as head does with `zquota --watch 30 | head`.
+    # Output to a pipe is buffered, so flush here to find out while that can still be caught.
+    try:
+        code = _run_loop(args, use_color)
+        sys.stdout.flush()
+    except BrokenPipeError:
+        return _discard_stdout()
+    return code
 
 
 if __name__ == "__main__":

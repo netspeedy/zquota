@@ -1,6 +1,6 @@
 ---
 title: Exit codes
-description: What zquota's exit codes 0, 1, 2 and 130 mean, and which failures produce each one.
+description: What zquota's exit codes 0, 1, 2, 130 and 141 mean, and which failures produce each one.
 ---
 
 | Code | Meaning |
@@ -9,6 +9,7 @@ description: What zquota's exit codes 0, 1, 2 and 130 mean, and which failures p
 | `1` | zquota couldn't get or read the quota, or a flag's value is out of range. |
 | `2` | A `--threshold` breach, or a command line zquota couldn't parse. |
 | `130` | Ctrl-C before a run without `--watch` has finished. zquota prints a newline to standard error and stops. |
+| `141` | Whatever was reading zquota's output closed it first, as `head` does once it has its lines. zquota stops without a message, with the code a shell gives any command stopped by a closed pipe. |
 
 ## 1: runtime and input errors
 
