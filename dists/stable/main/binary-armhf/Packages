@@ -1,0 +1,20 @@
+Package: zquota
+Version: 0.1.4-1
+Architecture: all
+Maintainer: Simon Oakes <813389+soakes@users.noreply.github.com>
+Installed-Size: 45
+Depends: python3:any (>= 3.12)
+Filename: pool/main/z/zquota/zquota_0.1.4-1_all.deb
+Size: 18976
+MD5sum: 44d246fa6af065b8605dfd9e1c047d32
+SHA1: bc4272e900b86ba6b9c58b11a217d1e4f858d97f
+SHA256: 868d58216a73b8edebeeb8f30f2a563a2e5804dd4736892cfde22eca74aa191f
+Section: utils
+Priority: optional
+Homepage: https://netspeedy.github.io/zquota/
+Description: Z.ai quota usage and reset-time CLI
+ zquota queries the Z.ai quota endpoint and renders current usage, remaining
+ capacity, and exact reset windows in readable terminal and machine-readable
+ formats. It is useful when the upstream usage charts do not show enough detail
+ about rolling quota resets.
+
