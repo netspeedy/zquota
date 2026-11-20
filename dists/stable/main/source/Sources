@@ -1,0 +1,29 @@
+Format: 3.0 (quilt)
+Package: zquota
+Binary: zquota
+Architecture: all
+Version: 0.1.4-1
+Priority: optional
+Section: unknown
+Maintainer: Simon Oakes <813389+soakes@users.noreply.github.com>
+Homepage: https://netspeedy.github.io/zquota/
+Standards-Version: 4.6.2
+Vcs-Browser: https://github.com/netspeedy/zquota
+Vcs-Git: https://github.com/netspeedy/zquota.git
+Build-Depends: debhelper-compat (= 13), python3:any (>= 3.12)
+Package-List:
+ zquota deb utils optional arch=all
+Directory: pool/main/z/zquota
+Checksums-Sha1:
+ daa488cd6657a42c152ead6c8096d78d09afa7ab 957 zquota_0.1.4-1.dsc
+ 49d1374df1180720ec711389cb6a21c982f11974 1217259 zquota_0.1.4.orig.tar.gz
+ 583a2176430a6036af2223141f958e27c4f49cfa 3636 zquota_0.1.4-1.debian.tar.xz
+Checksums-Sha256:
+ bd936502e5f9b16633587b211eaaae1a34874a7a6c69d765000e72871527e295 957 zquota_0.1.4-1.dsc
+ 0f1f08eafe264bc1ddf443f9bee700a46d957a89c22e6f7239d58f0bbf330cf8 1217259 zquota_0.1.4.orig.tar.gz
+ 4a1de5eb25a8da045be474d3f1dbb7bec6ec9d061e4af23fd255f7bba908fb70 3636 zquota_0.1.4-1.debian.tar.xz
+Files:
+ b01751080bdd2577f388c324faedde33 957 zquota_0.1.4-1.dsc
+ d0076c799433fc10efdbe8818d343e5b 1217259 zquota_0.1.4.orig.tar.gz
+ 946874ecb411ce5543b7618c1dd65eee 3636 zquota_0.1.4-1.debian.tar.xz
+

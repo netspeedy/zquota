@@ -1,0 +1,17 @@
+{
+  "site_url": "https://netspeedy.github.io/zquota/",
+  "latest_release": {
+    "tag_name": "v0.1.4",
+    "html_url": "https://github.com/netspeedy/zquota/releases/tag/v0.1.4"
+  },
+  "release_commit": "b5dc2fa096da0d367c8da8a8ba6a205bf2ebb235",
+  "docs_versions": [],
+  "apt_repository": {
+    "available": true,
+    "url": "https://netspeedy.github.io/zquota/",
+    "suite": "stable",
+    "component": "main",
+    "key_url": "https://netspeedy.github.io/zquota/zquota-archive-keyring.gpg",
+    "fingerprint": "DDD9 21F2 DC58 4A5B D421 8FD9 6946 EE31 E131 3662"
+  }
+}
